@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#02140c"/>
+      <stop offset="0.6" stop-color="#0b3d22"/>
+      <stop offset="1" stop-color="#021009"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.4" r="0.6">
+      <stop offset="0" stop-color="#7dffb0" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#7dffb0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="vine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2affa0" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#63ffbe" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#0f8f52" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.75  0 0 0 0 1  0 0 0 0 0.85  0 0 0 0.055 0"/>
+    </filter>
+  </defs>
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <rect width="800" height="800" fill="url(#glow)"/>
+  <g fill="none" stroke="url(#vine)" stroke-width="3" stroke-linecap="round">
+    <path d="M0 250 H 180 V 380 H 340 V 260 H 520 V 400 H 800"/>
+    <path d="M0 520 H 140 V 620 H 400 V 540 H 620 V 640 H 800"/>
+  </g>
+  <g fill="#8dffc8" opacity="0.9">
+    <circle cx="180" cy="380" r="7"/><circle cx="520" cy="400" r="7"/><circle cx="140" cy="620" r="6"/>
+    <circle cx="620" cy="640" r="6"/><circle cx="400" cy="540" r="5"/><circle cx="340" cy="260" r="5"/>
+  </g>
+  <g stroke="#bfffdd" stroke-width="1.4" opacity="0.7" fill="none">
+    <path d="M180 380 V 470 H 90"/>
+    <path d="M520 400 V 320 H 700"/>
+    <path d="M400 620 V 700 H 240"/>
+  </g>
+  <g fill="none" stroke="#63ffbe" stroke-width="2" opacity="0.55">
+    <path d="M400 140 C 340 180, 340 240, 400 280 C 460 320, 460 380, 400 420"/>
+    <path d="M400 140 C 460 180, 460 240, 400 280 C 340 320, 340 380, 400 420"/>
+  </g>
+  <circle cx="400" cy="280" r="90" fill="none" stroke="#a5ffcf" stroke-opacity="0.35" stroke-width="1.2"/>
+  <g fill="#c8ffe4" opacity="0.8">
+    <circle cx="130" cy="120" r="1.8"/><circle cx="680" cy="110" r="2"/><circle cx="740" cy="250" r="1.5"/>
+    <circle cx="70" cy="430" r="1.6"/><circle cx="620" cy="180" r="1.4"/>
+  </g>
+  <rect width="800" height="800" filter="url(#grain)"/>
+</svg>

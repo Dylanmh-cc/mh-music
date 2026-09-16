@@ -1,0 +1,7 @@
+node_modules
+dist
+.DS_Store
+*.local
+
+# accounts server data: password hashes and live session tokens
+server/users.json

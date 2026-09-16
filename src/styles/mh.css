@@ -1,0 +1,499 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   MH MUSIC — DESIGN SYSTEM v2  ("Music Beyond Sound")
+   A ground-up system for the rebuilt product: floating gallery, glass tiers,
+   a hover-expanding nav rail and a floating dock. The legacy stylesheet stays
+   for the views that have not been rebuilt yet; nothing here overrides it.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── typography ───────────────────────────────────────────────────────── */
+  --mh-font: 'Inter', 'Geist', 'SF Pro Display', 'Segoe UI Variable Display',
+             'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei UI', system-ui, sans-serif;
+  --mh-font-mono: 'Geist Mono', 'JetBrains Mono', 'SFMono-Regular', Consolas, ui-monospace, monospace;
+
+  /* ── radii & rhythm ──────────────────────────────────────────────────── */
+  --mh-r-xs: 10px;
+  --mh-r-sm: 14px;
+  --mh-r-md: 20px;
+  --mh-r-lg: 28px;
+  --mh-r-xl: 36px;
+  --mh-r-pill: 999px;
+
+  /* ── glass tiers: surface, edge, inner light, shadow ──────────────────── */
+  --mh-surface-1: linear-gradient(158deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.028) 46%, rgba(255,255,255,0.062) 100%);
+  --mh-surface-2: linear-gradient(158deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.014) 52%, rgba(255,255,255,0.032) 100%);
+  --mh-edge: rgba(255, 255, 255, 0.11);
+  --mh-edge-strong: rgba(255, 255, 255, 0.17);
+  --mh-hairline: rgba(255, 255, 255, 0.06);
+  --mh-shadow-lift: 0 30px 80px rgba(0, 0, 0, 0.52), 0 8px 24px rgba(0, 0, 0, 0.38);
+  --mh-shadow-deep: 0 44px 120px rgba(0, 0, 0, 0.62), 0 14px 40px rgba(0, 0, 0, 0.46);
+
+  /* ── motion: one family of curves, no bouncing ────────────────────────── */
+  --mh-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --mh-ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --mh-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  /* ── layout ──────────────────────────────────────────────────────────── */
+  --mh-rail: 74px;
+  --mh-rail-open: 218px;
+  --mh-dock-h: 92px;
+}
+
+html { font-family: var(--mh-font); }
+
+/* Headings breathe a little; body copy stays tight for legibility. */
+.mh-display {
+  font-family: var(--mh-font);
+  font-weight: 620;
+  letter-spacing: -0.018em;
+}
+.mh-overline {
+  font-family: var(--mh-font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+.mh-mono { font-family: var(--mh-font-mono); font-variant-numeric: tabular-nums; }
+
+/* ═══ Glass tiers ═════════════════════════════════════════════════════════
+   Three depths of the same material. Each one: a translucent surface, a real
+   backdrop blur, a hairline edge plus a brighter specular rim, an inner bloom
+   and a soft cast shadow — so it reads as a physical pane, not rgba(). */
+.mh-glass,
+.mh-glass-soft,
+.mh-glass-deep {
+  position: relative;
+  border-radius: var(--mh-r-lg);
+  border: 1px solid var(--mh-edge);
+  background: var(--mh-surface-1);
+  box-shadow: var(--mh-shadow-lift), inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(var(--glass-blur, 24px)) saturate(1.65) brightness(1.05);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 24px)) saturate(1.65) brightness(1.05);
+}
+.mh-glass-soft {
+  background: var(--mh-surface-2);
+  border-color: var(--mh-hairline);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(calc(var(--glass-blur, 24px) * 0.7)) saturate(1.5);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur, 24px) * 0.7)) saturate(1.5);
+}
+.mh-glass-deep {
+  background: linear-gradient(158deg, rgba(255,255,255,0.13), rgba(255,255,255,0.04) 48%, rgba(255,255,255,0.075));
+  border-color: var(--mh-edge-strong);
+  box-shadow: var(--mh-shadow-deep), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 0 60px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(calc(var(--glass-blur, 24px) * 1.5)) saturate(1.8) brightness(1.08);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur, 24px) * 1.5)) saturate(1.8) brightness(1.08);
+}
+/* specular rim: light catching the top-left bevel */
+.mh-glass::before, .mh-glass-soft::before, .mh-glass-deep::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(142deg, rgba(255,255,255,0.4), rgba(255,255,255,0.05) 26%, transparent 52%, rgba(255,255,255,0.1) 92%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+/* the album's own light pooling inside the pane */
+.mh-glass-soft::after, .mh-glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(120% 80% at 12% -10%, var(--c-glow-soft), transparent 62%);
+  opacity: 0.9;
+  pointer-events: none;
+}
+.mh-nolit::after { display: none; }
+.mh-capsule { border-radius: var(--mh-r-pill); }
+
+/* ═══ Buttons ═════════════════════════════════════════════════════════════ */
+.mh-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--mh-r-pill);
+  font-family: var(--mh-font);
+  font-size: 13px;
+  font-weight: 540;
+  color: var(--c-ink);
+  padding: 10px 18px;
+  background: linear-gradient(158deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04) 55%, rgba(255,255,255,0.09));
+  border: 1px solid var(--mh-edge);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.2);
+  backdrop-filter: blur(14px) saturate(1.5);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  transition: transform 260ms var(--mh-spring), box-shadow 300ms var(--mh-ease-soft), background 300ms var(--mh-ease-soft), color 200ms ease;
+  overflow: hidden;
+}
+.mh-btn:hover { transform: scale(1.035); box-shadow: 0 14px 34px rgba(0,0,0,0.4), 0 0 28px var(--c-glow-soft), inset 0 1px 0 rgba(255,255,255,0.26); }
+.mh-btn:active { transform: scale(0.965); }
+.mh-btn[data-variant='accent'] {
+  color: #fff;
+  background:
+    radial-gradient(120% 150% at 28% 14%, rgba(255,255,255,0.34), transparent 44%),
+    linear-gradient(158deg, var(--c-accent), color-mix(in srgb, var(--c-accent) 66%, #fff 14%) 52%, color-mix(in srgb, var(--c-accent) 72%, #000 26%));
+  border-color: rgba(255,255,255,0.3);
+  box-shadow: 0 14px 38px var(--c-glow), inset 0 1px 0 rgba(255,255,255,0.42);
+}
+.mh-btn[data-variant='ghost'] { background: transparent; border-color: transparent; box-shadow: none; color: var(--c-ink-dim); }
+.mh-btn[data-variant='ghost']:hover { background: rgba(255,255,255,0.06); color: var(--c-ink); box-shadow: none; }
+.mh-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+/* liquid ripple on press */
+.mh-ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  background: radial-gradient(circle, rgba(255,255,255,0.5), transparent 68%);
+  pointer-events: none;
+  animation: mhRipple 620ms var(--mh-ease) forwards;
+}
+@keyframes mhRipple { to { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
+
+/* round icon button */
+.mh-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--mh-r-pill);
+  color: var(--c-ink-dim);
+  transition: color 220ms ease, background 220ms ease, transform 240ms var(--mh-spring);
+}
+.mh-icon-btn:hover { color: var(--c-ink); background: rgba(255,255,255,0.07); transform: scale(1.06); }
+.mh-icon-btn:active { transform: scale(0.93); }
+.mh-icon-btn[data-active='true'] { color: var(--c-accent-2); background: var(--c-tint); }
+
+/* ═══ Nav rail: icons that open into labels on hover ═════════════════════ */
+.mh-rail {
+  position: relative;
+  width: var(--mh-rail);
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 14px 10px;
+  border-radius: var(--mh-r-xl);
+  transition: width 420ms var(--mh-ease), background 400ms var(--mh-ease-soft);
+  overflow: hidden;
+}
+.mh-rail:hover { width: var(--mh-rail-open); }
+.mh-rail-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 44px;
+  padding: 0 11px;
+  border-radius: var(--mh-r-sm);
+  color: var(--c-ink-dim);
+  white-space: nowrap;
+  transition: color 260ms ease, background 260ms ease, transform 320ms var(--mh-ease);
+}
+.mh-rail-item:hover { color: var(--c-ink); background: rgba(255,255,255,0.055); transform: translateX(2px); }
+.mh-rail-item[data-active='true'] { color: var(--c-ink); background: var(--c-tint); }
+.mh-rail-item[data-active='true']::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  width: 3px;
+  height: 20px;
+  transform: translateY(-50%);
+  border-radius: 99px;
+  background: linear-gradient(var(--c-accent-2), var(--c-accent));
+  box-shadow: 0 0 16px var(--c-glow);
+}
+.mh-rail-label { opacity: 0; transform: translateX(-6px); transition: opacity 320ms var(--mh-ease), transform 320ms var(--mh-ease); }
+.mh-rail:hover .mh-rail-label { opacity: 1; transform: none; }
+
+/* ═══ Floating dock ══════════════════════════════════════════════════════ */
+.mh-dock {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(940px, calc(100vw - 32px));
+  padding: 12px 16px;
+  border-radius: var(--mh-r-xl);
+}
+
+/* ═══ Floating gallery: album covers hanging in one 3D space ════════════ */
+.mh-gallery-scene {
+  perspective: 1500px;
+  perspective-origin: 50% 42%;
+  transform-style: preserve-3d;
+}
+.mh-gallery-plane {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.mh-gallery-card {
+  position: relative;
+  transform-style: preserve-3d;
+  will-change: transform, opacity, filter;
+  transition: filter 520ms var(--mh-ease), opacity 520ms var(--mh-ease), transform 620ms var(--mh-ease);
+}
+/* focus depth: the hovered sleeve steps forward, its neighbours recede */
+.mh-gallery:hover .mh-gallery-card:not(:hover) {
+  filter: brightness(0.62) saturate(0.62) blur(3px);
+  opacity: 0.58;
+}
+.mh-gallery:hover .mh-gallery-card:hover { filter: brightness(1.08) saturate(1.06); }
+:root[data-motion='off'] .mh-gallery:hover .mh-gallery-card:not(:hover) { filter: brightness(0.72); }
+@media (prefers-reduced-motion: reduce) {
+  .mh-gallery:hover .mh-gallery-card:not(:hover) { filter: brightness(0.72); }
+}
+
+/* the big ghost letter behind each alphabetical zone */
+.mh-zone-letter {
+  font-family: var(--mh-font);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.13);
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ═══ Halo: the album's light pooling around a sleeve ════════════════════ */
+.mh-halo {
+  position: absolute;
+  inset: -14%;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, var(--c-glow), transparent 68%);
+  filter: blur(38px);
+  opacity: 0;
+  transition: opacity 620ms var(--mh-ease);
+}
+.mh-halo[data-on='true'] { opacity: 0.85; }
+
+/* ═══ Queue panel sliding in from the right ═════════════════════════════ */
+.mh-queue-panel {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  bottom: calc(var(--mh-dock-h) + 26px);
+  z-index: 70;
+  width: min(392px, calc(100vw - 32px));
+  border-radius: var(--mh-r-xl);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ═══ Inertial vinyl: the angle comes from JS, so a record winds down ═════ */
+.vinyl-inertia {
+  animation: none;
+  transform: rotate(var(--vinyl-angle, 0deg));
+  will-change: transform;
+}
+.vinyl-inertia[data-spinning='true'] .vinyl-label { box-shadow: inset 0 0 0 2px rgba(0,0,0,0.32), 0 0 18px var(--c-glow-soft); }
+
+/* ═══ small helpers ══════════════════════════════════════════════════════ */
+.mh-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--mh-hairline), transparent); }
+.mh-scroll { overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.14) transparent; }
+.mh-scroll::-webkit-scrollbar { width: 8px; }
+.mh-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; border: 2px solid transparent; background-clip: padding-box; }
+.mh-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); background-clip: padding-box; }
+
+/* ============================================================================
+   PLAYBACK PAGE - the landscape treatment
+   ----------------------------------------------------------------------------
+   The player leads with its lyrics over the music landscape, so the type needs
+   a real optical glow, and the artwork is screened down to a halftone dot
+   grid the way the reference artwork is printed.
+   ========================================================================== */
+
+/* ---- lyrics: big, luminous, one line clearly winning ---- */
+.np-scene .lyric-line {
+  text-shadow: 0 3px 30px rgba(0, 0, 0, 0.72), 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.np-scene .lyric-line.current {
+  color: #fff;
+  text-shadow:
+    0 0 18px var(--c-glow, rgba(255, 255, 255, 0.4)),
+    0 0 54px var(--c-glow, rgba(255, 255, 255, 0.25)),
+    0 0 110px rgba(255, 255, 255, 0.14),
+    0 4px 34px rgba(0, 0, 0, 0.7);
+}
+/* the sung line is the loudest thing on screen; everything else steps back */
+.np-scene .lyric-line.past,
+.np-scene .lyric-line.near {
+  font-weight: 600;
+}
+
+/* ---- halftone screen over artwork ---- */
+.mh-halftone {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.55) 1px, transparent 1.4px);
+  background-size: 4px 4px;
+  mix-blend-mode: soft-light;
+  opacity: 0.5;
+  /* densest over the subject, thinning toward the edge - a printed screen */
+  -webkit-mask-image: radial-gradient(circle at 50% 46%, #000 18%, rgba(0, 0, 0, 0.42) 62%, transparent 92%);
+  mask-image: radial-gradient(circle at 50% 46%, #000 18%, rgba(0, 0, 0, 0.42) 62%, transparent 92%);
+}
+.mh-halftone-coarse {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.42) 2.1px, transparent 2.8px);
+  background-size: 9px 9px;
+  mix-blend-mode: overlay;
+  opacity: 0.42;
+}
+
+/* ---- the landscape's floor shadow: grounds the blocks in the room ---- */
+.mh-landscape-floor {
+  background: radial-gradient(64% 44% at 50% 78%, rgba(0, 0, 0, 0.55), transparent 74%);
+}
+
+/* ---- the album rack: one horizontal row, never wrapping ---- */
+.mh-rail-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  /* the row bleeds to the viewport edges so the sleeves run off-screen rather
+     than stopping at a padding line */
+  margin-inline: -18px;
+  padding-inline: 18px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.mh-rail-scroll::-webkit-scrollbar { display: none; }
+.mh-rail-scroll > * { scroll-snap-align: start; }
+/* a soft fade at both ends reads as "there is more of the rack this way" */
+.mh-rail-scroll {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 22px, #000 calc(100% - 34px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 22px, #000 calc(100% - 34px), transparent 100%);
+}
+.mh-rail-scroll:focus-visible { outline: 2px solid var(--c-accent-2); outline-offset: 4px; }
+
+/* the row is a single band: no wrap, and the plane keeps its own depth */
+.mh-rail-scroll .mh-gallery-plane { flex-wrap: nowrap; width: max-content; }
+
+/* In the rack the focus effect has to stay cheap: blurring every other sleeve in
+   a fifty-album row costs a layer per card, so the neighbours only dim. */
+.mh-rail-scroll .mh-gallery:hover .mh-gallery-card:not(:hover) {
+  filter: brightness(0.66) saturate(0.7);
+  opacity: 0.72;
+}
+.mh-rail-scroll .mh-gallery:hover .mh-gallery-card:hover { filter: brightness(1.08) saturate(1.06); }
+.mh-rail-scroll .mh-gallery-card { will-change: transform; }
+
+/* The lyric column scrolls, but a gutter beside large glowing type is noise 鈥?   the mask already says there is more text above and below. */
+.np-scene .scroll-silk {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.np-scene .scroll-silk::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+/* ============================================================================
+   PLAYER BACKGROUND TREATMENTS
+   ========================================================================== */
+
+/* Glass: a pane laid over the room 鈥?two skewed highlights and a faint wash. */
+.glass-pane {
+  background:
+    linear-gradient(148deg, rgba(255, 255, 255, 0.07), transparent 38%, transparent 68%, rgba(255, 255, 255, 0.04));
+}
+
+/* Vinyl Room: the listener inside the record, grooves as the walls. */
+.vinyl-room {
+  border-radius: 50%;
+  opacity: 0.55;
+  background:
+    repeating-radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.055) 0 1px, transparent 1px 9px),
+    repeating-radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.42) 0 4px, transparent 4px 16px);
+  animation: mhVinylRoom 26s linear infinite;
+}
+@keyframes mhVinylRoom {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+:root[data-motion='off'] .vinyl-room { animation: none; }
+@media (prefers-reduced-motion: reduce) { .vinyl-room { animation: none; } }
+
+/* ============================================================================
+   PERFORMANCE MODE
+   ----------------------------------------------------------------------------
+   `Performance` trims the expensive parts of the material 鈥?blur and glow 鈥?   rather than changing the layout, so the product still looks like itself.
+   ========================================================================== */
+:root[data-perf='performance'] .mh-glass,
+:root[data-perf='performance'] .mh-glass-soft,
+:root[data-perf='performance'] .mh-glass-deep,
+:root[data-perf='performance'] .glass,
+:root[data-perf='performance'] .glass-soft,
+:root[data-perf='performance'] .glass-strong {
+  backdrop-filter: blur(8px) saturate(1.05) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(1.05) !important;
+}
+:root[data-perf='performance'] .mh-halo,
+:root[data-perf='performance'] .mh-rail,
+:root[data-perf='performance'] .mh-dock {
+  box-shadow: none !important;
+}
+:root[data-perf='balanced'] .mh-glass,
+:root[data-perf='balanced'] .mh-glass-soft,
+:root[data-perf='balanced'] .mh-glass-deep {
+  backdrop-filter: blur(calc(var(--glass-blur, 24px) * 0.8)) saturate(1.15);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur, 24px) * 0.8)) saturate(1.15);
+}
+
+/* ============================================================================
+   SHELVES 鈥?the Browse page
+   ========================================================================== */
+.mh-shelf {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  padding: 4px 2px 14px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.mh-shelf::-webkit-scrollbar { display: none; }
+.mh-shelf > * { scroll-snap-align: start; }
+.mh-shelf-card {
+  width: 168px;
+  flex: 0 0 auto;
+  transition: transform 420ms var(--mh-ease), filter 420ms var(--mh-ease);
+}
+.mh-shelf-card:hover { transform: translateY(-6px); }
+.mh-shelf:hover .mh-shelf-card:not(:hover) { filter: brightness(0.7) saturate(0.8); }
+
+/* ============================================================================
+   VISUALIZER STUDIO 鈥?the mode gallery on /visualizer
+   ========================================================================== */
+.mh-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+}
+.mh-mode-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  padding: 14px;
+  text-align: left;
+  border: 1px solid var(--mh-hairline);
+  background: rgba(255, 255, 255, 0.04);
+  transition: border-color 320ms var(--mh-ease), background 320ms var(--mh-ease), transform 320ms var(--mh-ease);
+}
+.mh-mode-card:hover { transform: translateY(-3px); background: rgba(255, 255, 255, 0.07); }
+.mh-mode-card[data-on='true'] {
+  border-color: var(--c-accent-2);
+  background: var(--c-tint);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 10px 30px rgba(0, 0, 0, 0.35);
+}

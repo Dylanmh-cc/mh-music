@@ -1,0 +1,1489 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MH MUSIC — design system
+   Liquid Glass · Vinyl · Album-driven dynamic themes · Film grain
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Animatable theme variables (smooth cross-album transitions) */
+@property --c-accent   { syntax: '<color>'; inherits: true; initial-value: #6f8cff; }
+@property --c-accent-2 { syntax: '<color>'; inherits: true; initial-value: #9ee8ff; }
+@property --c-deep-0   { syntax: '<color>'; inherits: true; initial-value: #06070c; }
+@property --c-deep-1   { syntax: '<color>'; inherits: true; initial-value: #0b0e18; }
+@property --c-glow     { syntax: '<color>'; inherits: true; initial-value: rgba(111,140,255,0.4); }
+@property --c-glow-soft{ syntax: '<color>'; inherits: true; initial-value: rgba(111,140,255,0.16); }
+@property --c-tint     { syntax: '<color>'; inherits: true; initial-value: rgba(111,140,255,0.10); }
+@property --c-tint-2   { syntax: '<color>'; inherits: true; initial-value: rgba(158,232,255,0.07); }
+
+:root {
+  --c-accent: #6f8cff;
+  --c-accent-2: #9ee8ff;
+  --c-glow: rgba(111, 140, 255, 0.4);
+  --c-glow-soft: rgba(111, 140, 255, 0.16);
+  --c-deep-0: #06070c;
+  --c-deep-1: #0b0e18;
+  --c-tint: rgba(111, 140, 255, 0.1);
+  --c-tint-2: rgba(158, 232, 255, 0.07);
+  --c-ink: #f3f5fa;
+  --c-ink-dim: rgba(228, 234, 246, 0.55);
+  --c-ink-faint: rgba(228, 234, 246, 0.32);
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-brd: rgba(255, 255, 255, 0.09);
+  --glass-hi: rgba(255, 255, 255, 0.14);
+  --blur-app: 32px;
+  --radius-xl: 28px;
+
+  transition:
+    --c-accent 900ms cubic-bezier(0.4, 0, 0.2, 1),
+    --c-accent-2 900ms cubic-bezier(0.4, 0, 0.2, 1),
+    --c-deep-0 1100ms cubic-bezier(0.4, 0, 0.2, 1),
+    --c-deep-1 1100ms cubic-bezier(0.4, 0, 0.2, 1),
+    --c-glow 900ms ease,
+    --c-glow-soft 900ms ease,
+    --c-tint 900ms ease,
+    --c-tint-2 900ms ease;
+}
+
+/* Fixed theme bases (used when Dynamic Colors is off) */
+:root[data-theme='dark']   { --c-deep-0: #0a0c12; --c-deep-1: #10131c; }
+:root[data-theme='black']  { --c-deep-0: #000000; --c-deep-1: #060708; }
+:root[data-theme='midnight'] { --c-deep-0: #04070f; --c-deep-1: #081020; }
+:root[data-theme='glass']  { --c-deep-0: #101418; --c-deep-1: #171d24; --glass-bg: rgba(255,255,255,0.08); }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI Variable Text', 'Segoe UI', 'SF Pro Text', system-ui, -apple-system, sans-serif;
+  background: var(--c-deep-0);
+  color: var(--c-ink);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: var(--c-glow); color: #fff; }
+
+button { cursor: pointer; }
+button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ── scrollbars ─────────────────────────────────────────────────────────── */
+.scroll-silk { overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.14) transparent; }
+.scroll-silk::-webkit-scrollbar { width: 8px; height: 8px; }
+.scroll-silk::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.scroll-silk::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.22); background-clip: padding-box; }
+.scroll-silk::-webkit-scrollbar-corner { background: transparent; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+/* ═══ Liquid Glass material ═══════════════════════════════════════════════
+   translucent surface + backdrop blur + inner highlight + refraction edge
+   + soft shadow + subtle noise. */
+.glass {
+  position: relative;
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.085) 0%, rgba(255, 255, 255, 0.028) 42%, rgba(255, 255, 255, 0.055) 100%);
+  backdrop-filter: blur(var(--blur-app, 32px)) saturate(1.6) brightness(1.06);
+  -webkit-backdrop-filter: blur(var(--blur-app)) saturate(1.6) brightness(1.06);
+  border: 1px solid var(--glass-brd);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.5),
+    0 4px 18px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 var(--glass-hi),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.03),
+    inset 1px 0 0 rgba(255, 255, 255, 0.03);
+}
+/* refraction rim: light bends at the top-left edge */
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.35), rgba(255,255,255,0.04) 30%, transparent 55%, rgba(255,255,255,0.08));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+/* noise layer */
+.glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 140px;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+.glass-soft {
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(var(--glass-blur, 18px)) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+.glass-strong {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.045) 50%, rgba(255, 255, 255, 0.07));
+  backdrop-filter: blur(calc(var(--glass-blur, 40px) * 1.8)) saturate(1.8) brightness(1.1);
+  -webkit-backdrop-filter: blur(40px) saturate(1.8) brightness(1.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+/* `.glass` sets `position: relative` for its own overlay pseudo-elements, and
+   this stylesheet is emitted after the utility layer — so without these the
+   material would silently beat Tailwind's `absolute`/`fixed` and a popover
+   would stay in flow, stretching whatever it is anchored to. */
+.glass.absolute, .glass-soft.absolute, .glass-strong.absolute, .glass-pill.absolute { position: absolute; }
+.glass.fixed, .glass-soft.fixed, .glass-strong.fixed, .glass-pill.fixed { position: fixed; }
+
+/* Liquid glass button — the tactile one, for primary transport */
+.lg-btn {
+  position: relative;
+  border-radius: 999px;
+  background: linear-gradient(160deg, rgba(255,255,255,0.16), rgba(255,255,255,0.05) 55%, rgba(255,255,255,0.1));
+  backdrop-filter: blur(14px) saturate(1.5);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -8px 16px rgba(255, 255, 255, 0.04),
+    0 0 0 rgba(0, 0, 0, 0);
+  transition: transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 300ms ease, background 300ms ease;
+}
+.lg-btn:hover {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.45),
+    0 6px 26px var(--c-glow-soft),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+}
+.lg-btn:active { transform: scale(0.96); }
+
+/* primary play button with accent gel */
+.lg-btn-primary {
+  background:
+    radial-gradient(120% 140% at 30% 20%, rgba(255,255,255,0.28), transparent 42%),
+    linear-gradient(160deg, var(--c-accent), color-mix(in srgb, var(--c-accent) 62%, #ffffff 12%) 52%, color-mix(in srgb, var(--c-accent) 70%, #000000 24%));
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  box-shadow:
+    0 12px 34px var(--c-glow),
+    0 4px 14px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -10px 20px rgba(0, 0, 0, 0.16);
+}
+.lg-btn-primary:hover {
+  box-shadow:
+    0 16px 44px var(--c-glow),
+    0 6px 18px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--c-ink-dim);
+  transition: color 220ms ease, background 220ms ease, transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 220ms ease;
+}
+.icon-btn:hover { color: var(--c-ink); background: rgba(255, 255, 255, 0.07); }
+.icon-btn:active { transform: scale(0.92); }
+.icon-btn.active { color: var(--c-accent-2); }
+.icon-btn.active-dot::after {
+  content: '';
+  position: absolute;
+  bottom: 1px;
+  left: 50%;
+  width: 3px;
+  height: 3px;
+  border-radius: 99px;
+  background: var(--c-accent-2);
+  transform: translateX(-50%);
+}
+
+/* ═══ Background stage ═══════════════════════════════════════════════════ */
+.stage-base {
+  position: fixed;
+  inset: 0;
+  isolation: isolate;
+  background:
+    radial-gradient(120% 90% at 72% -12%, var(--c-deep-1), transparent 62%),
+    radial-gradient(130% 110% at 10% 108%, var(--c-tint), transparent 58%),
+    var(--c-deep-0);
+}
+.stage-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.75;
+  pointer-events: none;
+  /* keep the middle quiet so artwork and text stay the focus */
+  mask-image: radial-gradient(72% 62% at 50% 48%, rgba(0, 0, 0, 0.34) 0%, #000 78%);
+  -webkit-mask-image: radial-gradient(72% 62% at 50% 48%, rgba(0, 0, 0, 0.34) 0%, #000 78%);
+}
+/* slow aurora wash — the room's ambient light */
+.stage-aurora {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  opacity: 0.5;
+  background:
+    conic-gradient(from 200deg at 30% 20%, transparent 0deg, var(--c-glow-soft) 60deg, transparent 140deg, var(--c-tint-2) 240deg, transparent 320deg);
+  filter: blur(90px);
+  animation: auroraTurn 64s linear infinite;
+}
+@keyframes auroraTurn { to { transform: rotate(360deg); } }
+.stage-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(78% 78% at 50% 46%, transparent 42%, rgba(0, 0, 0, 0.5) 100%);
+}
+
+.stage-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.5;
+  will-change: transform;
+  pointer-events: none;
+}
+.stage-blob.a { width: 55vw; height: 55vw; left: -12vw; top: -18vw; background: radial-gradient(circle, var(--c-glow) 0%, transparent 65%); }
+.stage-blob.b { width: 48vw; height: 48vw; right: -14vw; bottom: -20vw; background: radial-gradient(circle, var(--c-tint-2) 0%, transparent 62%); }
+.stage-blob.c { width: 34vw; height: 34vw; left: 32vw; bottom: -8vw; background: radial-gradient(circle, var(--c-glow-soft) 0%, transparent 60%); }
+
+/* ═══ Street layer — spray halftone, stencil marks, tape ═════════════════ */
+.street-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.5;
+}
+/* the same street, rendered inside the console: no glass blur in the way, so
+   it can carry the room's character instead of disappearing */
+.street-inframe {
+  opacity: 0.9;
+  mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+}
+.street-halftone {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.5) 0.9px, transparent 1.1px);
+  background-size: 5px 5px;
+  opacity: 0.16;
+  mask-image: radial-gradient(80% 70% at 50% 45%, #000 0%, transparent 78%);
+  -webkit-mask-image: radial-gradient(80% 70% at 50% 45%, #000 0%, transparent 78%);
+}
+.street-spray {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--c-glow) 0%, transparent 62%);
+  filter: blur(50px);
+  opacity: 0.32;
+  animation: sprayPulse 22s ease-in-out infinite;
+}
+@keyframes sprayPulse {
+  0%, 100% { transform: scale(1) translate3d(0, 0, 0); opacity: 0.26; }
+  50% { transform: scale(1.14) translate3d(2%, -2%, 0); opacity: 0.42; }
+}
+.street-stencil {
+  position: absolute;
+  font-family: 'Consolas', 'SFMono-Regular', ui-monospace, monospace;
+  font-size: clamp(34px, 6vw, 96px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.14);
+  opacity: 0.5;
+  transform: rotate(-90deg);
+  transform-origin: left bottom;
+  user-select: none;
+}
+.street-stencil-r {
+  transform: rotate(90deg);
+  transform-origin: right top;
+}
+.street-tape {
+  position: absolute;
+  width: 118px;
+  height: 26px;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.16) 45%, rgba(255, 255, 255, 0.07));
+  border-left: 1px dashed rgba(255, 255, 255, 0.14);
+  border-right: 1px dashed rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(2px);
+  opacity: 0.55;
+}
+
+/* ── street furniture ──────────────────────────────────────────────────────
+   The city outside the record shop: skyline, neon, posters, gear. Everything
+   here is deliberately faint and tinted with the album's accent, so it reads
+   as atmosphere rather than content. */
+.st-skyline {
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  bottom: 0;
+  height: 26vh;
+  opacity: 0.5;
+  background:
+    linear-gradient(to top, color-mix(in srgb, var(--c-deep-0) 92%, #000) 0%, transparent 92%),
+    repeating-linear-gradient(90deg,
+      transparent 0 22px,
+      color-mix(in srgb, var(--c-accent) 22%, transparent) 22px 24px,
+      transparent 24px 40px,
+      color-mix(in srgb, var(--c-accent-2) 14%, transparent) 40px 41px,
+      transparent 41px 66px);
+  mask-image: linear-gradient(to top, #000 8%, transparent 92%);
+  -webkit-mask-image: linear-gradient(to top, #000 8%, transparent 92%);
+  filter: blur(1.2px);
+}
+.st-neon {
+  position: absolute;
+  border-radius: 10px;
+  border: 1.5px solid color-mix(in srgb, var(--c-accent-2) 70%, transparent);
+  box-shadow:
+    0 0 14px var(--c-glow-soft),
+    inset 0 0 18px var(--c-glow-soft);
+  opacity: 0.5;
+  animation: neonFlicker 9s ease-in-out infinite;
+}
+.st-neon::after {
+  content: '';
+  position: absolute;
+  inset: 22% 16%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c-accent-2) 55%, transparent), transparent);
+  opacity: 0.5;
+}
+@keyframes neonFlicker {
+  0%, 92%, 100% { opacity: 0.5; }
+  93% { opacity: 0.24; }
+  95% { opacity: 0.56; }
+}
+.st-poster {
+  position: absolute;
+  border-radius: 4px;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+  opacity: 0.42;
+  overflow: hidden;
+}
+.st-poster::before {
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 12%;
+  height: 16%;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--c-accent) 55%, transparent);
+}
+.st-poster::after {
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 30%;
+  top: 40%;
+  bottom: 14%;
+  background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.16) 0 1.5px, transparent 1.5px 9px);
+}
+.st-cassette {
+  position: absolute;
+  width: 96px;
+  height: 62px;
+  border-radius: 6px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.5);
+  opacity: 0.4;
+}
+.st-cassette::before,
+.st-cassette::after {
+  content: '';
+  position: absolute;
+  top: 30%;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--c-accent-2) 45%, transparent);
+  background: rgba(0, 0, 0, 0.35);
+}
+.st-cassette::before { left: 18%; }
+.st-cassette::after { right: 18%; }
+.st-speaker {
+  position: absolute;
+  width: 74px;
+  height: 108px;
+  border-radius: 8px;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0.36;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.5);
+}
+.st-speaker::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 54%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(0, 0, 0, 0.55) 0 26%, transparent 27%),
+    repeating-radial-gradient(circle, rgba(255, 255, 255, 0.13) 0 1px, transparent 1px 4px);
+}
+.st-sign {
+  position: absolute;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: 'Consolas', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--c-accent-2) 75%, #ffffff);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid color-mix(in srgb, var(--c-accent) 40%, transparent);
+  box-shadow: 0 0 18px var(--c-glow-soft), inset 0 0 12px rgba(0, 0, 0, 0.5);
+  opacity: 0.5;
+}
+.st-sticker {
+  position: absolute;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--c-accent) 30%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  opacity: 0.32;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+}
+.st-scratch {
+  position: absolute;
+  height: 1.5px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  opacity: 0.3;
+}
+
+/* ═══ Floating album wall ═══════════════════════════════════════════════ */
+@keyframes floatIdle {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(0, -5px, 0) rotate(0.25deg); }
+}
+.float-idle {
+  animation: floatIdle 11s ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
+}
+@media (prefers-reduced-motion: reduce) { .float-idle { animation: none; } }
+:root[data-motion='off'] .float-idle { animation: none; }
+
+/* focus effect: hovering one album softens the rest of the wall */
+.album-wall:hover .album-card:not(:hover) .cover-3d {
+  filter: blur(4.5px) saturate(0.55) brightness(0.6);
+  opacity: 0.48;
+  transform: scale(0.955);
+}
+.album-wall:hover .album-card:not(:hover) .album-meta { opacity: 0.26; }
+.album-wall:hover .album-card:not(:hover) .float-idle { animation-play-state: paused; }
+.album-wall:hover .album-card:hover .cover-3d {
+  filter: saturate(1.1) brightness(1.06);
+  transform: scale(1.035);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), 0 0 60px var(--c-glow);
+}
+.album-card { transition: opacity 520ms ease, filter 520ms ease, z-index 0s; }
+.album-card.is-dim .cover-3d { filter: blur(4.5px) saturate(0.55) brightness(0.6); opacity: 0.5; transform: scale(0.955); }
+.album-card.is-dim .album-meta { opacity: 0.28; }
+@media (prefers-reduced-motion: reduce) {
+  .album-wall:hover .album-card:not(:hover) .cover-3d { filter: brightness(0.7); }
+}
+:root[data-motion='off'] .album-wall:hover .album-card:not(:hover) .cover-3d { filter: brightness(0.7); }
+
+/* stencil track numerals for the wall */
+.track-stencil {
+  font-family: 'Consolas', ui-monospace, monospace;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ═══ Application glass frame — one large floating liquid-glass console ══
+   The whole interface (top bar, sidebar, content, right panel) lives inside
+   a single translucent slab floating in the ambient space, per the MH Music
+   reference layout. The transport pill overlaps its bottom edge. */
+.app-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background:
+    radial-gradient(130% 60% at 15% -4%, var(--c-tint), transparent 58%),
+    radial-gradient(120% 55% at 88% -6%, var(--c-tint-2), transparent 62%),
+    linear-gradient(168deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.016) 46%, rgba(255, 255, 255, 0.034));
+  box-shadow:
+    0 50px 140px rgba(0, 0, 0, 0.62),
+    0 18px 50px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 90px rgba(0, 0, 0, 0.28);
+}
+@media (min-width: 768px) {
+  .app-frame {
+    border-radius: 26px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.085);
+    backdrop-filter: blur(var(--glass-blur, 22px)) saturate(1.5);
+    -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  }
+}
+/* specular seam along the frame's top edge */
+.app-frame::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 6%, rgba(255, 255, 255, 0.26), transparent 94%);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ═══ Frameless regions ═════════════════════════════════════════════════ */
+.glass-pill {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.022) 55%, rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(calc(var(--glass-blur, 26px) * 1.2)) saturate(1.7) brightness(1.05);
+  -webkit-backdrop-filter: blur(26px) saturate(1.7) brightness(1.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 26px 70px rgba(0, 0, 0, 0.55),
+    0 6px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.nav-rail-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  padding: 11px 13px;
+  border-radius: 15px;
+  color: var(--c-ink-dim);
+  transition: color 320ms ease, background 320ms ease, transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-rail-btn:hover { color: var(--c-ink); background: rgba(255, 255, 255, 0.05); transform: translateX(3px); }
+/* collapsed rail centres the icon: the utility must beat the rule above */
+.nav-rail-btn.px-0 { padding-left: 0; padding-right: 0; }
+.nav-rail-btn.is-active { color: var(--c-ink); }
+.nav-rail-btn.is-active::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  height: 18px;
+  width: 3px;
+  border-radius: 99px;
+  transform: translateY(-50%);
+  background: linear-gradient(var(--c-accent-2), var(--c-accent));
+  box-shadow: 0 0 14px var(--c-glow);
+}
+
+/* ═══ Film grain ═════════════════════════════════════════════════════════
+   Static on purpose: an animated full-screen overlay blend re-composites the
+   whole viewport several times a second, which reads as flicker on a big
+   display — the texture is worth having, the movement is not. */
+.grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 240px;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+}
+.grain-strong { opacity: 0.12; }
+
+/* ═══ Vinyl record ═══════════════════════════════════════════════════════ */
+.vinyl {
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.14), transparent 34%),
+    repeating-radial-gradient(circle at 50% 50%, #0c0d10 0px, #0c0d10 2px, #16181d 3px, #0c0d10 4px);
+  box-shadow:
+    0 14px 40px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 0 40px rgba(0, 0, 0, 0.7);
+  position: relative;
+  overflow: hidden;
+}
+.vinyl::before {
+  /* light sheen sweeping across grooves */
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 210deg, transparent 0deg, rgba(255, 255, 255, 0.1) 14deg, transparent 30deg, transparent 178deg, rgba(255, 255, 255, 0.08) 196deg, transparent 214deg);
+  mix-blend-mode: screen;
+}
+.vinyl-label {
+  position: absolute;
+  inset: 34%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, var(--c-accent-2), var(--c-accent) 62%, color-mix(in srgb, var(--c-accent) 55%, #000000 40%));
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.28), 0 0 12px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vinyl-label::after {
+  content: '';
+  width: 8%;
+  height: 8%;
+  min-width: 6px;
+  min-height: 6px;
+  border-radius: 50%;
+  background: #0a0b0e;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.vinyl-spin { animation: spin 3.2s linear infinite; }
+.vinyl-slow { animation: spin 9s linear infinite; }
+/* freeze the angle instead of restarting it — pause/resume never jumps */
+.vinyl-paused { animation-play-state: paused; }
+
+/* ═══ Album cards ════════════════════════════════════════════════════════ */
+.album-card { will-change: transform; transform-style: preserve-3d; }
+.album-card .cover-3d {
+  transition: transform 480ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 480ms ease, filter 420ms ease;
+  transform-style: preserve-3d;
+}
+.album-card.is-dim .cover-3d {
+  filter: blur(3px) saturate(0.6) brightness(0.62);
+  opacity: 0.55;
+  transform: scale(0.96);
+}
+.album-card.is-dim .album-meta { opacity: 0.35; }
+.album-meta { transition: opacity 420ms ease; }
+
+.vinyl-pocket { transform-style: preserve-3d; }
+
+/* ═══ Card wall ═══════════════════════════════════════════════════════════
+   One responsive track system for every browse surface (albums, artists,
+   playlists, songs, search). Cards never fall below 260px on desktop and
+   never balloon past 360px — the reference layout's comfortable proportions. */
+.card-wall {
+  display: grid;
+  gap: 32px 22px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  align-items: start;
+}
+.card-wall > * { max-width: 360px; }
+@media (min-width: 768px) {
+  .card-wall { gap: 36px 24px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+}
+/* songs/playlists read better a little denser than full album sleeves */
+.card-wall.is-compact { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+@media (min-width: 768px) {
+  .card-wall.is-compact { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+}
+.card-wall.is-compact > * { max-width: 300px; }
+
+/* ── 3D media card: shared by songs, artists and playlists ──────────────── */
+.media-card {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: opacity 460ms ease, filter 460ms ease;
+}
+.media-card .media-3d {
+  transition: transform 460ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 460ms ease, filter 400ms ease;
+  transform-style: preserve-3d;
+}
+/* focus depth: the hovered card lifts, its neighbours recede */
+.media-wall:hover .media-card:not(:hover) .media-3d {
+  filter: blur(3.4px) saturate(0.6) brightness(0.62);
+  opacity: 0.5;
+}
+.media-wall:hover .media-card:not(:hover) .media-meta { opacity: 0.3; }
+.media-wall:hover .media-card:hover .media-3d {
+  box-shadow: 0 34px 78px rgba(0, 0, 0, 0.62), 0 0 70px var(--c-glow);
+}
+.media-meta { transition: opacity 400ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .media-wall:hover .media-card:not(:hover) .media-3d { filter: brightness(0.7); }
+}
+:root[data-motion='off'] .media-wall:hover .media-card:not(:hover) .media-3d { filter: brightness(0.7); }
+
+/* album artwork always fills its frame — no letterbox, no borders */
+.art-fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ═══ Now Playing 3D space ═══════════════════════════════════════════════ */
+.np-scene {
+  perspective: 1500px;
+  perspective-origin: 50% 46%;
+  transform-style: preserve-3d;
+}
+.np-layer { transform-style: preserve-3d; will-change: transform; }
+.np-glass-panel {
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.02) 52%, rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(var(--glass-blur, 24px)) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+/* the record's groove sheen reads stronger while it spins in space */
+.np-scene .vinyl { box-shadow: 0 18px 50px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.07), inset 0 0 50px rgba(0, 0, 0, 0.75), 0 0 90px var(--c-glow-soft); }
+
+/* ═══ Song rows ══════════════════════════════════════════════════════════ */
+.song-row {
+  display: grid;
+  grid-template-columns: 40px 52px minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 15px;
+  transition: background 240ms ease, opacity 340ms ease, filter 340ms ease, transform 340ms ease;
+}
+.song-row:hover { background: rgba(255, 255, 255, 0.055); }
+.song-row.dimmed { opacity: 0.5; filter: brightness(0.82); }
+.song-row.playing .song-title { color: var(--c-accent-2); }
+/* focus: hovering the list softens every other row (pure CSS, no re-render) */
+.song-list:hover .song-row:not(:hover) {
+  opacity: 0.55;
+  filter: blur(1.2px) saturate(0.78) brightness(0.86);
+}
+.song-list:hover .song-row:hover { transform: translateX(3px); }
+@media (prefers-reduced-motion: reduce) {
+  .song-list:hover .song-row:not(:hover) { filter: none; opacity: 0.7; }
+}
+:root[data-motion='off'] .song-list:hover .song-row:not(:hover) { filter: none; opacity: 0.7; }
+.eq-bars { display: inline-flex; gap: 2px; align-items: flex-end; height: 14px; }
+.eq-bars i {
+  width: 3.5px;
+  background: var(--c-accent-2);
+  border-radius: 1px;
+  animation: eq 0.9s ease-in-out infinite;
+}
+.eq-bars i:nth-child(2) { animation-delay: 0.25s; }
+.eq-bars i:nth-child(3) { animation-delay: 0.5s; }
+@keyframes eq { 0%, 100% { height: 30%; } 50% { height: 100%; } }
+.eq-bars.eq-paused i { animation-play-state: paused; height: 30%; }
+
+/* ═══ Progress + sliders ═════════════════════════════════════════════════ */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 26px;
+  background: transparent;
+  cursor: pointer;
+}
+input[type='range']::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 99px;
+  background: linear-gradient(to right, var(--c-accent) var(--fill, 50%), rgba(255, 255, 255, 0.14) var(--fill, 50%));
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  margin-top: -4.5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5), 0 0 0 4px var(--c-glow-soft);
+  transition: transform 200ms ease;
+}
+input[type='range']:hover::-webkit-slider-thumb { transform: scale(1.2); }
+input[type='range']::-moz-range-track { height: 6px; border-radius: 99px; background: rgba(255,255,255,0.14); }
+input[type='range']::-moz-range-progress { height: 6px; border-radius: 99px; background: var(--c-accent); }
+input[type='range']::-moz-range-thumb {
+  width: 15px; height: 15px; border: none; border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.5);
+}
+
+/* ═══ Lyrics ═════════════════════════════════════════════════════════════ */
+.lyric-line {
+  transition:
+    opacity 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 620ms ease,
+    transform 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    text-shadow 620ms ease;
+  color: var(--c-ink-dim);
+  filter: blur(1.4px);
+  opacity: 0.42;
+  font-weight: 500;
+}
+.lyric-line.past { opacity: 0.2; filter: blur(2.2px); }
+.lyric-line.current {
+  color: var(--lyr-hl, #ffffff);
+  opacity: var(--lyr-op, 0.95);
+  filter: blur(0);
+  transform: scale(1.03);
+  text-shadow: 0 0 26px var(--c-glow), 0 2px 22px rgba(0, 0, 0, 0.5);
+  font-weight: 650;
+}
+.lyric-line.near { opacity: 0.72; filter: blur(0.5px); }
+
+/* ── Karaoke fill: the accent sweeps across the sentence as it is sung ──── */
+.lyric-karaoke { position: relative; display: block; }
+.lyric-karaoke .lk-base {
+  display: block;
+  /* unsung part of the line: present but clearly waiting */
+  opacity: 0.3;
+  transition: opacity 420ms ease;
+}
+.lyric-line.current .lyric-karaoke .lk-base { opacity: 0.4; }
+.lyric-karaoke .lk-fill {
+  position: absolute;
+  inset: 0;
+  display: block;
+  color: var(--lyr-hl, #ffffff);
+  clip-path: inset(0 100% 0 0);
+  will-change: clip-path;
+  pointer-events: none;
+  text-shadow: 0 0 18px var(--c-glow), 0 0 46px var(--c-glow-soft);
+}
+/* lyrics animation off: the whole line simply reads as current */
+.lyric-karaoke.karaoke-off .lk-base { opacity: 1; }
+
+/* ═══ Misc ═══════════════════════════════════════════════════════════════ */
+.skeleton {
+  border-radius: 16px;
+  background: linear-gradient(100deg, rgba(255,255,255,0.045) 40%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.045) 60%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.floaty { animation: floaty 7s ease-in-out infinite; }
+
+.text-glow { text-shadow: 0 0 30px var(--c-glow); }
+.accent-glow { box-shadow: 0 0 24px var(--c-glow-soft), 0 0 60px var(--c-glow-soft); }
+
+.divider { height: 1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent); }
+
+/* horizontal shelf edge fade */
+.shelf {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 6px 2px 18px;
+}
+
+/* intro cinema */
+.intro-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(75% 75% at 50% 42%, transparent 30%, rgba(0, 0, 0, 0.78) 100%);
+  pointer-events: none;
+}
+.intro-spot {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  width: 90vmin;
+  height: 90vmin;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(210, 225, 255, 0.14) 0%, rgba(160, 190, 255, 0.05) 38%, transparent 68%);
+  pointer-events: none;
+}
+
+/* ── turntable intro scene ─────────────────────────────────────────────── */
+.intro-haze {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 45% at 50% 55%, rgba(120, 150, 220, 0.09), transparent 70%),
+    radial-gradient(40% 30% at 22% 78%, rgba(255, 170, 120, 0.05), transparent 70%);
+}
+.intro-beam {
+  position: absolute;
+  left: 50%;
+  top: -12%;
+  width: 58vmin;
+  height: 118vh;
+  transform: translateX(-50%);
+  transform-origin: 50% 0%;
+  background: linear-gradient(to bottom, rgba(226, 238, 255, 0.22), rgba(190, 212, 255, 0.09) 42%, transparent 78%);
+  /* softened with gradients instead of a 24px filter: a blurred, full-height
+     layer has to be re-rasterized whenever it animates */
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 82%), linear-gradient(to right, transparent, #000 26%, #000 74%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 82%), linear-gradient(to right, transparent, #000 26%, #000 74%, transparent);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+  pointer-events: none;
+}
+.intro-floor {
+  position: absolute;
+  left: -14%;
+  right: -14%;
+  top: 92%;
+  height: 34%;
+  pointer-events: none;
+  background:
+    radial-gradient(45% 60% at 50% 0%, rgba(0, 0, 0, 0.72), transparent 72%),
+    radial-gradient(70% 40% at 34% 8%, rgba(255, 150, 76, 0.12), transparent 70%),
+    radial-gradient(70% 40% at 70% 6%, rgba(140, 170, 230, 0.09), transparent 70%);
+  filter: blur(18px);
+}
+/* centre spindle */
+.intro-spindle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2.2%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #eef2f8, #9aa3b2 58%, #4b5160);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.35), 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+/* shadow the descending record casts onto the platter */
+.intro-record-shadow {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: calc(var(--record-scale, 0.82) * 100%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.6) 0 46%, rgba(0, 0, 0, 0.3) 66%, transparent 78%);
+  filter: blur(7px);
+}
+/* out-of-focus foreground = depth of field */
+.intro-fg { position: absolute; pointer-events: none; filter: blur(22px); opacity: 0.85; }
+.intro-fg-left {
+  left: -7vw; top: 34vh; width: 24vw; height: 62vh;
+  background: linear-gradient(120deg, rgba(10, 12, 18, 0.95), rgba(16, 19, 27, 0.5));
+  border-radius: 10px;
+  transform: rotate(-3deg);
+}
+.intro-fg-bottom {
+  left: 0; right: 0; bottom: -5vh; height: 22vh;
+  background: linear-gradient(to top, rgba(4, 5, 8, 0.95), transparent);
+}
+
+/* ═══ Turntable deck — one square coordinate frame ══════════════════════
+   `.intro-sq` is a square whose side equals the deck width and which is centred
+   on the plinth. Inside it, 1% is 1% of the deck width on *both* axes, so the
+   platter and the tonearm can be positioned in one shared frame — that is what
+   lets the arm's length be derived from the point where the needle must land
+   (see IntroSequence.tsx). Nothing here animates anything expensive: the rig,
+   the plinth and the discs are promoted so phase changes only recompose. */
+.intro-rig {
+  position: relative;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+.intro-deck {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.62;
+  transform-style: preserve-3d;
+}
+.intro-sq {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  transform-style: preserve-3d;
+}
+
+.intro-plinth {
+  position: relative;
+  height: 100%;
+  border-radius: 4.5%;
+  /* retro-modern deck: brushed aluminium top plate, a chrome trim line and a
+     walnut base — the materials do the "real machine" work, not more shadows */
+  background:
+    linear-gradient(100deg, rgba(255, 255, 255, 0.06) 0%, transparent 18%, transparent 78%, rgba(255, 255, 255, 0.045) 100%),
+    repeating-linear-gradient(96deg, rgba(255, 255, 255, 0.024) 0 1px, transparent 1px 4px),
+    linear-gradient(to bottom,
+      transparent 0 63.5%,
+      rgba(255, 255, 255, 0.14) 63.5% 64.2%,
+      rgba(150, 158, 170, 0.28) 64.2% 65.4%,
+      rgba(84, 50, 27, 0.92) 65.4% 66.6%,
+      rgba(56, 31, 15, 0.97) 66.6% 100%),
+    repeating-linear-gradient(88deg,
+      rgba(0, 0, 0, 0.18) 0 3px,
+      rgba(255, 255, 255, 0.022) 3px 5px,
+      rgba(0, 0, 0, 0.06) 5px 12px),
+    linear-gradient(150deg, #3a3f49 0%, #1b1e25 38%, #262a33 62%, #0b0c10 100%);
+  box-shadow:
+    0 60px 100px rgba(0, 0, 0, 0.9),
+    0 20px 46px rgba(0, 0, 0, 0.72),
+    0 0 80px rgba(120, 160, 230, 0.09),
+    inset 2px 0 0 rgba(255, 168, 106, 0.14),
+    inset -2px 0 0 rgba(138, 182, 255, 0.1),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.24),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.85);
+  /* a shallower, more photographic 3/4 view: the deck reads as a solid box,
+     and the small yaw shows a little of its side */
+  transform: rotateX(38deg) rotateY(-5deg);
+  transform-style: preserve-3d;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+/* front lip of the plinth — gives the deck real thickness */
+.intro-plinth-face {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30px;
+  border-radius: 0 0 4.5% 4.5%;
+  transform-origin: bottom center;
+  transform: rotateX(-90deg);
+  background: linear-gradient(180deg, #2b2f38 0%, #171a20 42%, #0a0b0f 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.7),
+    -14px 0 22px rgba(255, 152, 74, 0.07);
+  backface-visibility: hidden;
+}
+/* warm key light from the upper left, cool fill from the right */
+.intro-key {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: radial-gradient(58% 46% at 24% 16%, rgba(255, 152, 74, 0.3), transparent 62%);
+}
+.intro-rim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: radial-gradient(56% 44% at 84% 24%, rgba(122, 176, 255, 0.22), transparent 64%);
+}
+.intro-plinth-top {
+  position: absolute;
+  inset: 0;
+  border-radius: 4.5%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0.07) 0%, transparent 26%, transparent 62%, rgba(255, 255, 255, 0.03) 100%);
+  animation: introSweep 7s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+@keyframes introSweep {
+  0%, 100% { opacity: 0.35; transform: translateX(-3%); }
+  50% { opacity: 0.85; transform: translateX(4%); }
+}
+.intro-plinth-bevel {
+  position: absolute;
+  inset: 1.6%;
+  border-radius: 4%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 2px 3px rgba(255, 255, 255, 0.07);
+  pointer-events: none;
+}
+.intro-platter {
+  position: absolute;
+  left: var(--platter-x, 5%);
+  top: var(--platter-y, 24%);
+  width: var(--platter-size, 50%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #0c0e13;
+  box-shadow:
+    0 16px 46px rgba(0, 0, 0, 0.9),
+    0 0 60px rgba(140, 180, 240, 0.07),
+    inset 0 2px 5px rgba(255, 255, 255, 0.12),
+    inset 0 -6px 22px rgba(0, 0, 0, 0.92);
+  overflow: visible;
+  transform-style: preserve-3d;
+  /* the platter is the deck's reference plane; the record sits just above it */
+  transform: translateZ(var(--z-platter, 0px));
+}
+/* machined metal rim — a ring built from two nested discs (no mask: masks
+   break inside a preserve-3d subtree in Chrome) */
+.intro-platter-rim {
+  position: absolute;
+  inset: -4%;
+  border-radius: 50%;
+  background: conic-gradient(from 210deg,
+    #8b93a1 0deg, #33383f 40deg, #aab3c2 76deg, #262a31 130deg,
+    #9ba4b3 184deg, #2b2f37 230deg, #8b93a1 284deg, #23262d 328deg, #8b93a1 360deg);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.82),
+    -12px -8px 34px rgba(255, 152, 74, 0.18),
+    6px 4px 26px rgba(122, 176, 255, 0.12);
+}
+/* strobe dots riding the rim */
+.intro-platter-strobe {
+  position: absolute;
+  inset: -4%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.62) 0deg 1.3deg, transparent 1.3deg 11deg);
+  opacity: 0.34;
+}
+/* matte mat that covers the middle of both rings */
+.intro-platter-inner {
+  position: absolute;
+  inset: 3.6%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 32%, #30353e, #14171d 58%, #08090d 100%);
+  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.1), inset 0 -8px 26px rgba(0, 0, 0, 0.9);
+}
+.intro-platter-rings {
+  position: absolute;
+  inset: 2%;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 7px);
+  opacity: 0.5;
+}
+.intro-platter-sheen {
+  position: absolute;
+  inset: -6%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(255, 255, 255, 0.13) 26deg, transparent 60deg, transparent 200deg, rgba(255, 255, 255, 0.07) 226deg, transparent 260deg);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  will-change: transform;
+}
+.intro-ripple {
+  position: absolute;
+  inset: -8%;  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 40px rgba(180, 215, 255, 0.4), inset 0 0 30px rgba(180, 215, 255, 0.25);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.intro-record {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  border-radius: 50%;
+}
+/* the record's slot inside the platter — the disc is centred on the platter */
+.intro-record-slot {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: calc(var(--record-scale, 0.82) * 100%);
+  height: calc(var(--record-scale, 0.82) * 100%);
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+.intro-record-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  /* groove spacing is deliberately coarse: sub-pixel rings alias into a moiré
+     diamond at this size instead of reading as grooves */
+  background:
+    radial-gradient(circle at 34% 26%, rgba(255, 255, 255, 0.1), transparent 34%),
+    repeating-radial-gradient(circle at 50% 50%, #0c0d11 0 3px, #191c23 3px 5px, #0c0d11 5px 9px),
+    radial-gradient(circle at 50% 50%, #14161c 0 62%, #0a0b0e 100%);
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.62),
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.17),
+    inset 0 2px 10px rgba(255, 255, 255, 0.07);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.intro-record-disc.is-spinning { animation: spin 3.15s linear infinite; }
+.intro-record-label {
+  position: absolute;
+  inset: 33%;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: rgba(12, 14, 18, 0.82);
+  background: radial-gradient(circle at 40% 34%, var(--c-accent-2), var(--c-accent) 62%, color-mix(in srgb, var(--c-accent) 55%, #000 42%));
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.32), 0 0 16px rgba(0, 0, 0, 0.5);
+}
+.intro-record-label::after {
+  content: '';
+  position: absolute;
+  width: 9%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #08090c;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+.intro-record-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    conic-gradient(from 190deg, transparent 0deg, rgba(255, 255, 255, 0.17) 22deg, transparent 56deg, transparent 184deg, rgba(255, 255, 255, 0.13) 212deg, transparent 244deg),
+    linear-gradient(122deg, transparent 22%, rgba(255, 255, 255, 0.09) 38%, transparent 52%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+.intro-record-rim {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    inset 6px 0 14px rgba(255, 152, 74, 0.16),
+    inset -6px 0 14px rgba(122, 176, 255, 0.14),
+    inset 0 3px 10px rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+/* Tonearm. The container's LEFT edge is the pivot and its width is the arm's
+   effective length, both supplied by IntroSequence as variables; the stylus
+   sits exactly at the far end (x = 100%), so rotating to the computed
+   on-record angle lands it on the groove. Proportions match the original deck:
+   a slim tube, a small headshell and a fine needle. */
+.intro-arm {
+  position: absolute;
+  left: var(--arm-x, 74%);
+  top: var(--arm-y, 18%);
+  width: var(--arm-l, 41%);
+  height: 6.4%;
+  transform-origin: 0% 50%;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.intro-arm-bar {
+  position: absolute;
+  left: 7%;
+  right: 11%;
+  top: 44%;
+  height: 12%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #1c1f26, #4a4f5c 30%, #2a2d36 72%, #14161b);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+/* pivot boss sits on the arm's origin */
+.intro-arm-pivot {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 13%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 32%, #3a3f4a, #101218 72%);
+  box-shadow: 0 9px 20px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+/* counterweight hangs behind the pivot */
+.intro-arm-counter {
+  position: absolute;
+  left: -15%;
+  top: 50%;
+  width: 11%;
+  height: 118%;
+  transform: translateY(-50%);
+  border-radius: 42%;
+  background: linear-gradient(90deg, #12141a, #454a56 42%, #1d2027 78%, #0f1116);
+  box-shadow: 0 7px 16px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+/* headshell at the far end — small, like the deck it belongs to */
+.intro-arm-head {
+  position: absolute;
+  right: 1.5%;
+  top: 50%;
+  width: 12%;
+  height: 116%;
+  transform: translateY(-50%) rotate(8deg) translateZ(-3px);
+  border-radius: 26%;
+  background: linear-gradient(140deg, #4a5060, #171a20 72%);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+/* the needle: a fine stylus, its tip centred on the arm's far end
+   (= the computed contact point) */
+.intro-stylus {
+  position: absolute;
+  right: -1%;
+  top: 50%;
+  width: 2%;
+  height: 30%;
+  transform: translateY(-50%);
+  border-radius: 30%;
+  background: linear-gradient(180deg, #eef2f8, #a7b0bf 52%, #5d6473);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.75);
+}
+.intro-arm-rest {
+  position: absolute;
+  left: var(--rest-x, 67%);
+  top: var(--rest-y, 58%);
+  width: 3.2%;
+  height: 2.4%;
+  transform: translate(-50%, -50%);
+  border-radius: 3px;
+  background: linear-gradient(#22252d, #0d0f13);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.intro-controls {
+  position: absolute;
+  right: 8%;
+  top: 66%;
+  display: flex;
+  align-items: flex-end;
+  gap: 4%;
+  width: 26%;
+}
+.intro-vu {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 26px;
+  flex: 1;
+}
+.intro-vu span {
+  flex: 1;
+  height: 12%;
+  border-radius: 1px;
+  background: linear-gradient(to top, color-mix(in srgb, var(--c-accent) 70%, #000 10%), var(--c-accent-2));
+  opacity: 0.35;
+  transition: opacity 400ms ease;
+}
+.intro-vu.is-live span { opacity: 0.95; animation: vuBounce 620ms ease-in-out infinite; }
+.intro-vu.is-live span:nth-child(1) { animation-duration: 520ms; }
+.intro-vu.is-live span:nth-child(2) { animation-delay: 90ms; animation-duration: 700ms; }
+.intro-vu.is-live span:nth-child(3) { animation-delay: 40ms; animation-duration: 460ms; }
+.intro-vu.is-live span:nth-child(4) { animation-delay: 150ms; animation-duration: 780ms; }
+.intro-vu.is-live span:nth-child(5) { animation-delay: 70ms; animation-duration: 560ms; }
+.intro-vu.is-live span:nth-child(6) { animation-delay: 120ms; animation-duration: 660ms; }
+@keyframes vuBounce { 0%, 100% { height: 14%; } 50% { height: 92%; } }
+.intro-speed {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.intro-speed i {
+  font-style: normal;
+  font-size: 6px;
+  letter-spacing: 0.06em;
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.intro-speed i.is-on { color: rgba(255, 255, 255, 0.9); background: rgba(255, 255, 255, 0.14); }
+.intro-pitch {
+  position: absolute;
+  right: 4%;
+  top: 34%;
+  width: 2.2%;
+  height: 30%;
+  border-radius: 3px;
+  background: linear-gradient(#0e1015, #1c1f26);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.intro-pitch i {
+  position: absolute;
+  left: -60%;
+  top: 42%;
+  width: 220%;
+  height: 8%;
+  border-radius: 2px;
+  background: linear-gradient(#e8eef8, #9aa3b3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+.intro-etch {
+  position: absolute;
+  left: 4%;
+  top: 77%;
+  font-family: 'Consolas', ui-monospace, monospace;
+  font-size: min(1vmin, 6.5px);
+  letter-spacing: 0.34em;
+  color: rgba(255, 255, 255, 0.22);
+}
+
+/* powered details: a lit power lamp and a small readout strip */
+.intro-led {
+  position: absolute;
+  left: 3.2%;
+  top: 71%;
+  width: 1.4%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #ffd9a8, #ff8a3d 60%, #8a3a10);
+  box-shadow: 0 0 10px rgba(255, 150, 70, 0.85), inset 0 0 2px rgba(255, 255, 255, 0.7);
+  opacity: 0.9;
+}
+.intro-readout {
+  position: absolute;
+  right: 4%;
+  top: 70.5%;
+  width: 15%;
+  height: 4.6%;
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(10, 12, 16, 0.95), rgba(22, 26, 32, 0.9));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.intro-readout::after {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: 30%;
+  top: 38%;
+  height: 24%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c-accent-2) 70%, transparent), transparent);
+  opacity: 0.7;
+}
+
+/* still film grain: an animated blend layer over the whole screen is one of
+   the most expensive things we could run during the intro */
+.grain-static { animation: none; }
+
+/* dust motes — driven by CSS keyframes so Framer never wakes the main thread */
+.intro-mote {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(226, 236, 255, 0.95), rgba(210, 224, 250, 0.4) 45%, transparent 72%);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: moteRise var(--t, 12s) linear var(--d, 0s) infinite;
+  pointer-events: none;
+}
+@keyframes moteRise {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) scale(0.75); }
+  16% { opacity: 0.75; }
+  78% { opacity: 0.42; }
+  100% { opacity: 0; transform: translate3d(var(--dx, 12px), -44vh, 0) scale(1.15); }
+}
+
+/* mobile safe areas */
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+/* reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .grain { animation: none; }
+}
+:root[data-motion='off'] .drift-a, :root[data-motion='off'] .drift-b, :root[data-motion='off'] .drift-c { animation: none; }
+:root[data-motion='off'] .grain { animation: none; }
+:root[data-motion='off'] .floaty { animation: none; }

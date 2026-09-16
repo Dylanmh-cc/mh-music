@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#020b1c"/>
+      <stop offset="0.55" stop-color="#06325e"/>
+      <stop offset="1" stop-color="#021630"/>
+    </linearGradient>
+    <linearGradient id="wave1" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00e5ff" stop-opacity="0.05"/>
+      <stop offset="0.5" stop-color="#4dd8ff" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#0091ff" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="wave2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7af0ff" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#b8f6ff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#2f7bff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#c9f8ff"/>
+      <stop offset="0.45" stop-color="#39c8f0" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#0b6bd8" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur1"><feGaussianBlur stdDeviation="6"/></filter>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.05 0"/>
+    </filter>
+  </defs>
+  <rect width="800" height="800" fill="url(#sky)"/>
+  <circle cx="400" cy="330" r="210" fill="url(#sun)"/>
+  <circle cx="400" cy="330" r="120" fill="#dff9ff" opacity="0.92" filter="url(#blur1)"/>
+  <g fill="none" stroke-linecap="round">
+    <path d="M0 430 Q 100 400 200 430 T 400 430 T 600 430 T 800 430" stroke="url(#wave1)" stroke-width="5"/>
+    <path d="M0 470 Q 100 505 200 470 T 400 470 T 600 470 T 800 470" stroke="url(#wave1)" stroke-width="4" opacity="0.85"/>
+    <path d="M0 515 Q 100 480 200 515 T 400 515 T 600 515 T 800 515" stroke="url(#wave2)" stroke-width="3.5" opacity="0.75"/>
+    <path d="M0 560 Q 100 592 200 560 T 400 560 T 600 560 T 800 560" stroke="url(#wave1)" stroke-width="3" opacity="0.6"/>
+    <path d="M0 605 Q 100 580 200 605 T 400 605 T 600 605 T 800 605" stroke="url(#wave2)" stroke-width="2.5" opacity="0.45"/>
+    <path d="M0 650 Q 100 672 200 650 T 400 650 T 600 650 T 800 650" stroke="url(#wave1)" stroke-width="2" opacity="0.3"/>
+  </g>
+  <g fill="#9beaff" opacity="0.8">
+    <circle cx="120" cy="150" r="2.2"/><circle cx="205" cy="95" r="1.6"/><circle cx="640" cy="120" r="2"/>
+    <circle cx="710" cy="210" r="1.5"/><circle cx="90" cy="270" r="1.7"/><circle cx="580" cy="70" r="1.4"/>
+  </g>
+  <rect width="800" height="800" filter="url(#grain)"/>
+</svg>
