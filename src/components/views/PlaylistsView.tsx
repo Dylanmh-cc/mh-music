@@ -25,7 +25,7 @@ export function PlaylistsView() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
   const newCoverInput = useRef<HTMLInputElement | null>(null)
-  // one input serves every card's "change cover": the target id is remembered
+  // 一个 input 服务所有卡片的「更换封面」:记住目标卡片 id
   const changeInput = useRef<HTMLInputElement | null>(null)
   const [coverTarget, setCoverTarget] = useState<string | null>(null)
 
@@ -34,7 +34,7 @@ export function PlaylistsView() {
     try {
       return await fileToPlaylistCover(file)
     } catch {
-      toast('error', 'That image could not be read.')
+      toast('error', '无法读取该图片。')
       return undefined
     }
   }
@@ -42,9 +42,9 @@ export function PlaylistsView() {
   return (
     <div className="mx-auto max-w-[1280px]">
       <SectionTitle
-        title="Playlists"
-        hint={`${lib.playlists.length} playlist${lib.playlists.length !== 1 ? 's' : ''}`}
-        action={<GlassButton primary onClick={() => setCreating((v) => !v)}><span className="flex items-center gap-2"><IconPlus size={14} /> New Playlist</span></GlassButton>}
+        title="歌单"
+        hint={`${lib.playlists.length} 个歌单`}
+        action={<GlassButton primary onClick={() => setCreating((v) => !v)}><span className="flex items-center gap-2"><IconPlus size={14} /> 新建歌单</span></GlassButton>}
       />
 
       {creating && (
@@ -62,12 +62,12 @@ export function PlaylistsView() {
             type="button"
             className="glass-soft grid h-[52px] w-[52px] shrink-0 place-items-center overflow-hidden rounded-xl"
             onClick={() => newCoverInput.current?.click()}
-            aria-label="Choose playlist cover"
-            title="Choose a cover (optional)"
+            aria-label="选择歌单封面"
+            title="选择封面(可选)"
           >
             {coverDraft
               ? <img src={coverDraft} alt="" className="h-full w-full object-cover" />
-              : <span className="flex flex-col items-center gap-0.5" style={{ color: 'var(--c-ink-faint)' }}><IconPlus size={13} /><span className="text-[9px]">Cover</span></span>}
+              : <span className="flex flex-col items-center gap-0.5" style={{ color: 'var(--c-ink-faint)' }}><IconPlus size={13} /><span className="text-[9px]">封面</span></span>}
           </button>
           <input
             ref={newCoverInput}
@@ -75,18 +75,18 @@ export function PlaylistsView() {
             accept="image/*"
             className="hidden"
             onChange={async (e) => { setCoverDraft(await readCover(e.target.files?.[0])); e.target.value = '' }}
-            aria-label="Playlist cover image"
+            aria-label="歌单封面图片"
           />
 
           <input
             autoFocus
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Playlist name…"
+            placeholder="歌单名称…"
             className="min-w-[200px] flex-1 rounded-xl bg-white/5 px-4 py-2.5 text-[13.5px] outline-none placeholder:text-white/25"
-            aria-label="Playlist name"
+            aria-label="歌单名称"
           />
-          <button type="submit" className="lg-btn lg-btn-primary px-5 py-2.5 text-[13px] font-semibold">Create</button>
+          <button type="submit" className="lg-btn lg-btn-primary px-5 py-2.5 text-[13px] font-semibold">创建</button>
         </motion.form>
       )}
 
@@ -97,22 +97,22 @@ export function PlaylistsView() {
         className="hidden"
         onChange={async (e) => {
           const url = await readCover(e.target.files?.[0])
-          if (url && coverTarget) { setPlaylistCover(coverTarget, url); toast('success', 'Playlist cover updated.') }
+          if (url && coverTarget) { setPlaylistCover(coverTarget, url); toast('success', '歌单封面已更新。') }
           e.target.value = ''
           setCoverTarget(null)
         }}
-        aria-label="Replace playlist cover"
+        aria-label="更换歌单封面"
       />
 
       {lib.playlists.length === 0 ? (
         <EmptyState
           icon={<IconList size={28} />}
-          title="Create your first playlist."
-          hint="Playlists hold the nights together. Create one, or import from another music app (M3U / JSON / CSV)."
+          title="创建你的第一个歌单。"
+          hint="歌单把夜晚串在一起。创建一个,或从其他音乐软件导入(M3U / JSON / CSV)。"
           action={
             <div className="flex gap-2.5">
-              <GlassButton primary onClick={() => setCreating(true)}>Create Playlist</GlassButton>
-              <GlassButton onClick={() => ui.navigate('folders')}><span className="flex items-center gap-2"><IconImport size={14} /> Import</span></GlassButton>
+              <GlassButton primary onClick={() => setCreating(true)}>新建歌单</GlassButton>
+              <GlassButton onClick={() => ui.navigate('folders')}><span className="flex items-center gap-2"><IconImport size={14} /> 导入</span></GlassButton>
             </div>
           }
         />
@@ -120,7 +120,7 @@ export function PlaylistsView() {
         <Stage3D
           items={lib.playlists}
           keyOf={(p) => p.id}
-          label="Playlist stage"
+          label="歌单舞台"
           thumbnailOf={(p) => p.coverUrl ?? lib.getSong(p.songIds[0])?.coverUrl}
           cardWidth={312}
           stageHeight={560}
@@ -131,7 +131,7 @@ export function PlaylistsView() {
             const editing = editingId === pl.id
             return (
               <StageCardBody
-                artLabel={`Open playlist ${pl.name}`}
+                artLabel={`打开歌单 ${pl.name}`}
                 art={
                   pl.coverUrl ? (
                     <img src={pl.coverUrl} alt="" draggable={false} className="absolute inset-0 h-full w-full object-cover" />
@@ -146,7 +146,7 @@ export function PlaylistsView() {
                   )
                 }
                 title={pl.name}
-                subtitle={`${pl.songIds.length} track${pl.songIds.length !== 1 ? 's' : ''}`}
+                subtitle={`${pl.songIds.length} 首`}
                 onActivate={() => ui.navigate('playlist', { playlistId: pl.id })}
                 actions={
                   editing ? (
@@ -159,10 +159,10 @@ export function PlaylistsView() {
                         value={draft}
                         onChange={(e) => setDraft(e.target.value)}
                         className="min-w-0 flex-1 rounded-xl bg-white/8 px-3 py-1.5 text-[13px] outline-none"
-                        aria-label="Playlist name"
+                        aria-label="歌单名称"
                       />
-                      <button type="submit" className="icon-btn h-9 w-9" aria-label="Save name"><IconCheck size={16} /></button>
-                      <button type="button" className="icon-btn h-9 w-9" onClick={() => setEditingId(null)} aria-label="Cancel"><IconClose size={16} /></button>
+                      <button type="submit" className="icon-btn h-9 w-9" aria-label="保存名称"><IconCheck size={16} /></button>
+                      <button type="button" className="icon-btn h-9 w-9" onClick={() => setEditingId(null)} aria-label="取消"><IconClose size={16} /></button>
                     </form>
                   ) : (
                     <>
@@ -170,21 +170,21 @@ export function PlaylistsView() {
                         onClick={play}
                         className="lg-btn lg-btn-primary grid h-10 w-10 cursor-pointer place-items-center"
                         role="button"
-                        aria-label={`Play ${pl.name}`}
+                        aria-label={`播放 ${pl.name}`}
                       >
                         <IconPlay size={16} />
                       </span>
                       <button
                         className="icon-btn h-9 w-9"
                         onClick={(e) => { e.stopPropagation(); setDraft(pl.name); setEditingId(pl.id) }}
-                        aria-label={`Rename ${pl.name}`}
+                        aria-label={`重命名 ${pl.name}`}
                       >
                         <IconEdit size={16} />
                       </button>
                       <button
                         className="icon-btn h-9 w-9 hover:text-[#ff9a8a]"
                         onClick={(e) => { e.stopPropagation(); confirmDeletePlaylist(pl) }}
-                        aria-label={`Delete playlist ${pl.name}`}
+                        aria-label={`删除歌单 ${pl.name}`}
                       >
                         <IconTrash size={16} />
                       </button>
@@ -194,20 +194,20 @@ export function PlaylistsView() {
                           e.stopPropagation()
                           const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
                           ui.openCtx(r.left - 210, r.bottom + 6, [
-                            { label: 'Play', action: play },
-                            { label: 'Open Playlist', action: () => ui.navigate('playlist', { playlistId: pl.id }) },
-                            { label: 'Add Songs', action: () => ui.navigate('playlist', { playlistId: pl.id }) },
+                            { label: '播放', action: play },
+                            { label: '打开歌单', action: () => ui.navigate('playlist', { playlistId: pl.id }) },
+                            { label: '添加歌曲', action: () => ui.navigate('playlist', { playlistId: pl.id }) },
                             {
-                              label: pl.coverUrl ? 'Change Cover' : 'Set Cover…',
+                              label: pl.coverUrl ? '更换封面' : '设置封面…',
                               action: () => { setCoverTarget(pl.id); changeInput.current?.click() },
                             },
-                            ...(pl.coverUrl ? [{ label: 'Reset Cover', action: () => setPlaylistCover(pl.id, undefined) }] : []),
-                            { label: 'Rename', action: () => { setDraft(pl.name); setEditingId(pl.id) } },
+                            ...(pl.coverUrl ? [{ label: '恢复默认封面', action: () => setPlaylistCover(pl.id, undefined) }] : []),
+                            { label: '重命名', action: () => { setDraft(pl.name); setEditingId(pl.id) } },
                             { sep: true },
-                            { label: 'Delete Playlist', danger: true, action: () => confirmDeletePlaylist(pl) },
+                            { label: '删除歌单', danger: true, action: () => confirmDeletePlaylist(pl) },
                           ])
                         }}
-                        aria-label={`More options for ${pl.name}`}
+                        aria-label={`${pl.name} 的更多选项`}
                       >
                         <IconMore size={15} />
                       </button>

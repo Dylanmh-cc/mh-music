@@ -9,7 +9,7 @@ export function fmtTime(sec: number): string {
 
 export function greeting(name?: string): string {
   const h = new Date().getHours()
-  const part = h < 5 ? 'Good night' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
+  const part = h < 5 ? '夜深了' : h < 12 ? '早上好' : h < 18 ? '下午好' : '晚上好'
   return name ? `${part}, ${name}` : part
 }
 

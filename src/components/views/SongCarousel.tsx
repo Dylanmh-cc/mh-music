@@ -19,29 +19,29 @@ export function SongCarousel({ songs, contextIds }: { songs: Song[]; contextIds:
     <Stage3D
       items={songs}
       keyOf={(s) => s.id}
-      label="Song carousel"
+      label="歌曲轮播"
       thumbnailOf={(s) => s.coverUrl}
       followKey={player.songId}
       onActivate={(song) => {
         if (player.songId === song.id) player.toggle()
-        else player.playSong(song.id, contextIds, 'Songs')
+        else player.playSong(song.id, contextIds, '歌曲')
       }}
       renderCard={(song) => {
         const album = lib.getAlbum(song.albumId)
         const isCurrent = player.songId === song.id
         const isPlaying = isCurrent && player.isPlaying
         const fav = lib.favorites.songs.includes(song.id)
-        const play = () => (isCurrent ? player.toggle() : player.playSong(song.id, contextIds, 'Songs'))
+        const play = () => (isCurrent ? player.toggle() : player.playSong(song.id, contextIds, '歌曲'))
         return (
           <StageCardBody
-            artLabel={`${isPlaying ? 'Pause' : 'Play'} ${song.title} by ${song.artist}`}
+            artLabel={`${isPlaying ? '暂停' : '播放'} ${song.title} by ${song.artist}`}
             art={
               <>
-                <img src={song.coverUrl} alt={`${album?.name ?? song.title} artwork`} loading="lazy" draggable={false} className="h-full w-full object-cover" />
+                <img src={song.coverUrl} alt={`${album?.name ?? song.title} 封面`} loading="lazy" draggable={false} className="h-full w-full object-cover" />
                 {isCurrent && (
                   <span className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded-full bg-black/55 px-2.5 py-1 backdrop-blur-md">
                     <span className={cn('eq-bars', !isPlaying && 'eq-paused')} aria-hidden="true"><i /><i /><i /></span>
-                    <span className="track-stencil text-[9px] text-white/85">{isPlaying ? 'PLAYING' : 'PAUSED'}</span>
+                    <span className="track-stencil text-[9px] text-white/85">{isPlaying ? '播放中' : 'PAUSED'}</span>
                   </span>
                 )}
               </>
@@ -55,7 +55,7 @@ export function SongCarousel({ songs, contextIds }: { songs: Song[]; contextIds:
                   onClick={play}
                   className="lg-btn lg-btn-primary grid h-10 w-10 cursor-pointer place-items-center"
                   role="button"
-                  aria-label={isPlaying ? 'Pause' : 'Play'}
+                  aria-label={isPlaying ? '暂停' : '播放'}
                 >
                   {isPlaying ? <IconPause size={16} /> : <IconPlay size={16} />}
                 </span>
@@ -63,7 +63,7 @@ export function SongCarousel({ songs, contextIds }: { songs: Song[]; contextIds:
                   className={cn('icon-btn h-9 w-9', fav && 'active')}
                   style={{ color: fav ? 'var(--c-accent-2)' : undefined }}
                   onClick={(e) => { e.stopPropagation(); lib.toggleFavSong(song.id) }}
-                  aria-label={fav ? 'Remove from favorites' : 'Add to favorites'}
+                  aria-label={fav ? '取消收藏' : '加入收藏'}
                 >
                   {fav ? <IconHeartFill size={16} /> : <IconHeart size={16} />}
                 </button>
@@ -74,7 +74,7 @@ export function SongCarousel({ songs, contextIds }: { songs: Song[]; contextIds:
                     const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
                     ui.openCtx(r.left - 210, r.bottom + 6, songMenuItems(song))
                   }}
-                  aria-label={`More options for ${song.title}`}
+                  aria-label={`${song.title} 的更多选项`}
                 >
                   <IconMore size={15} />
                 </button>

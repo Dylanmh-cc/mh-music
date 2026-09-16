@@ -35,9 +35,9 @@ export const SongRow = memo(function SongRow({
 
   const items = songMenuItems(song)
   if (extraAction) items.splice(4, 0, { label: extraAction.label, action: extraAction.action })
-  if (onRemove) items.push({ sep: true }, { label: 'Remove from Playlist', danger: true, action: onRemove })
+  if (onRemove) items.push({ sep: true }, { label: '从歌单移除', danger: true, action: onRemove })
 
-  const activate = () => (isCurrent ? player.toggle() : player.playSong(song.id, contextIds, 'Songs'))
+  const activate = () => (isCurrent ? player.toggle() : player.playSong(song.id, contextIds, '歌曲'))
 
   return (
     <div
@@ -50,7 +50,7 @@ export const SongRow = memo(function SongRow({
       <button
         className="grid h-12 w-10 place-items-center"
         onClick={activate}
-        aria-label={isCurrent && isPlaying ? `Pause ${song.title}` : `Play ${song.title}`}
+        aria-label={isCurrent && isPlaying ? `暂停 ${song.title}` : `播放 ${song.title}`}
       >
         {isCurrent ? (
           <span className="eq-bars" aria-hidden="true"><i /><i /><i /></span>
@@ -65,10 +65,10 @@ export const SongRow = memo(function SongRow({
       </button>
 
       {/* artwork — visible at every breakpoint */}
-      <button className="relative h-12 w-12 shrink-0" onClick={activate} aria-label={`Play ${song.title}`} tabIndex={-1}>
+      <button className="relative h-12 w-12 shrink-0" onClick={activate} aria-label={`播放 ${song.title}`} tabIndex={-1}>
         <img
           src={song.coverUrl}
-          alt={`${album?.name ?? song.title} artwork`}
+          alt={`${album?.name ?? song.title} 封面`}
           loading="lazy"
           className="h-full w-full rounded-lg object-cover shadow-md transition-transform duration-500 group-hover:scale-105"
         />
@@ -96,7 +96,7 @@ export const SongRow = memo(function SongRow({
         <button
           className={cn('icon-btn h-9 w-9', fav && 'active')}
           onClick={() => lib.toggleFavSong(song.id)}
-          aria-label={fav ? `Remove ${song.title} from favorites` : `Add ${song.title} to favorites`}
+          aria-label={fav ? `取消收藏 ${song.title}` : `收藏 ${song.title}`}
         >
           {fav ? <IconHeartFill size={16} /> : <IconHeart size={16} />}
         </button>
@@ -106,7 +106,7 @@ export const SongRow = memo(function SongRow({
             const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
             ui.openCtx(r.left - 210, r.bottom + 6, items)
           }}
-          aria-label={`More options for ${song.title}`}
+          aria-label={`${song.title} 的更多选项`}
         >
           <IconMore size={16} />
         </button>

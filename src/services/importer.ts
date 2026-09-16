@@ -28,7 +28,7 @@ function parseJSONPlaylist(text: string): ImportEntry[] {
       }
     }
     return out
-  } catch { throw new Error('This JSON playlist could not be parsed.') }
+  } catch { throw new Error('这个 JSON 歌单无法解析。') }
 }
 
 function parseM3U(text: string): ImportEntry[] {

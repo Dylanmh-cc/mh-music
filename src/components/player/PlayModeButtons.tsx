@@ -4,10 +4,10 @@ import { cn } from '../../lib/format'
 import type { PlayMode } from '../../types/models'
 
 const MODES: Array<{ id: PlayMode; label: string; Icon: (p: { size?: number }) => JSX.Element }> = [
-  { id: 'sequential', label: 'Play in order', Icon: IconList },
-  { id: 'repeat-all', label: 'Repeat all', Icon: IconRepeat },
-  { id: 'repeat-one', label: 'Repeat one', Icon: IconRepeatOne },
-  { id: 'shuffle', label: 'Shuffle', Icon: IconShuffle },
+  { id: 'sequential', label: '顺序播放', Icon: IconList },
+  { id: 'repeat-all', label: '列表循环', Icon: IconRepeat },
+  { id: 'repeat-one', label: '单曲循环', Icon: IconRepeatOne },
+  { id: 'shuffle', label: '随机播放', Icon: IconShuffle },
 ]
 
 /**
@@ -22,7 +22,7 @@ export function PlayModeButtons({ size = 34, className }: { size?: number; class
     <div
       className={cn('glass-soft flex items-center gap-0.5 rounded-full p-0.5', className)}
       role="radiogroup"
-      aria-label="Playback mode"
+      aria-label="播放模式"
     >
       {MODES.map(({ id, label, Icon }) => {
         const on = playMode === id

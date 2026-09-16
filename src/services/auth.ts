@@ -37,7 +37,7 @@ function authHeaders(): Record<string, string> {
 async function remote<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(REMOTE + path, { ...init, headers: { ...authHeaders(), ...(init.headers ?? {}) } })
   const body = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error((body as { error?: string }).error ?? `The server responded ${res.status}.`)
+  if (!res.ok) throw new Error((body as { error?: string }).error ?? `服务器返回 ${res.status}。`)
   return body as T
 }
 
@@ -91,9 +91,9 @@ function writeUsers(users: StoredUser[]) { saveGlobal(USERS_KEY, users) }
 
 export async function register(name: string, email: string, password: string): Promise<PublicUser> {
   const norm = email.trim().toLowerCase()
-  if (!name.trim()) throw new Error('Please enter a display name.')
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(norm)) throw new Error('Please enter a valid email address.')
-  if (password.length < 6) throw new Error('Password must be at least 6 characters.')
+  if (!name.trim()) throw new Error('请输入昵称。')
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(norm)) throw new Error('请输入有效的邮箱地址。')
+  if (password.length < 6) throw new Error('密码至少需要 6 位。')
 
   if (REMOTE) {
     const out = await remote<{ user: PublicUser; token: string }>('/register', {
@@ -106,7 +106,7 @@ export async function register(name: string, email: string, password: string): P
 
   await sleep(420)
   const users = readUsers()
-  if (users.some((u) => u.email === norm)) throw new Error('An account with this email already exists.')
+  if (users.some((u) => u.email === norm)) throw new Error('该邮箱已经注册过了。')
   const salt = randomHex(16)
   const user: StoredUser = {
     id: uid('usr'), name: name.trim(), email: norm, salt,
@@ -135,9 +135,9 @@ export async function login(email: string, password: string, remember: boolean):
   await sleep(380)
   const users = readUsers()
   const user = users.find((u) => u.email === norm)
-  if (!user) throw new Error('No account found with this email.')
+  if (!user) throw new Error('没有找到使用该邮箱的账户。')
   const hash = await hashPassword(password, user.salt)
-  if (hash !== user.hash) throw new Error('Incorrect password.')
+  if (hash !== user.hash) throw new Error('密码不正确。')
   const session: Session = { uid: user.id, token: randomHex(24) }
   persistSession(session, remember)
   return { user: toPublic(user), session }
@@ -187,7 +187,7 @@ export async function requestResetCode(email: string): Promise<string> {
   await sleep(500)
   const users = readUsers()
   if (!users.some((u) => u.email === email.trim().toLowerCase())) {
-    throw new Error('No account found with this email.')
+    throw new Error('没有找到使用该邮箱的账户。')
   }
   // Mock e-mail delivery: the code is returned to the UI in this demo.
   const code = String(Math.floor(100000 + Math.random() * 900000))
@@ -199,13 +199,13 @@ export async function resetPassword(email: string, code: string, newPassword: st
   await sleep(420)
   const saved = loadGlobal<{ email: string; code: string; at: number } | null>('reset', null)
   if (!saved || saved.email !== email.trim().toLowerCase() || saved.code !== code.trim()) {
-    throw new Error('Invalid reset code.')
+    throw new Error('重置码无效。')
   }
-  if (Date.now() - saved.at > 10 * 60_000) throw new Error('Reset code expired. Request a new one.')
-  if (newPassword.length < 6) throw new Error('Password must be at least 6 characters.')
+  if (Date.now() - saved.at > 10 * 60_000) throw new Error('重置码已过期,请重新获取。')
+  if (newPassword.length < 6) throw new Error('密码至少需要 6 位。')
   const users = readUsers()
   const user = users.find((u) => u.email === email.trim().toLowerCase())
-  if (!user) throw new Error('No account found with this email.')
+  if (!user) throw new Error('没有找到使用该邮箱的账户。')
   user.salt = randomHex(16)
   user.hash = await hashPassword(newPassword, user.salt)
   writeUsers(users)
@@ -215,8 +215,8 @@ export async function changePassword(currentUid: string, currentPw: string, newP
   await sleep(360)
   const users = readUsers()
   const user = users.find((u) => u.id === currentUid)
-  if (!user) throw new Error('Not signed in.')
-  if ((await hashPassword(currentPw, user.salt)) !== user.hash) throw new Error('Current password is incorrect.')
+  if (!user) throw new Error('尚未登录。')
+  if ((await hashPassword(currentPw, user.salt)) !== user.hash) throw new Error('当前密码不正确。')
   user.salt = randomHex(16)
   user.hash = await hashPassword(newPw, user.salt)
   writeUsers(users)

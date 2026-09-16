@@ -100,7 +100,7 @@ export function SearchOverlay() {
             exit={{ y: -14, scale: 0.98, filter: 'blur(6px)' }}
             transition={{ type: 'spring', stiffness: 320, damping: 30 }}
             role="dialog"
-            aria-label="Search your library"
+            aria-label="搜索你的音乐库"
           >
             <div className="flex items-center gap-3 border-b border-white/8 px-5 py-4">
               <IconSearch size={18} style={{ color: 'var(--c-accent-2)' }} />
@@ -108,9 +108,9 @@ export function SearchOverlay() {
                 ref={inputRef}
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search songs, artists, albums, playlists…"
+                placeholder="搜索歌曲、歌手、专辑、歌单…"
                 className="flex-1 bg-transparent text-[15.5px] outline-none placeholder:text-white/30"
-                aria-label="Search query"
+                aria-label="搜索内容"
               />
               <kbd className="glass-soft rounded-lg px-2 py-1 text-[10.5px]" style={{ color: 'var(--c-ink-faint)' }}>Esc</kbd>
             </div>
@@ -129,11 +129,11 @@ export function SearchOverlay() {
 
               {hits.length > 0 && (
                 <>
-                  <SectionLabel>{`${hits.length} result${hits.length !== 1 ? 's' : ''}`}</SectionLabel>
+                  <SectionLabel>{`${hits.length} 条结果`}</SectionLabel>
                   <Stage3D
                     items={hits}
                     keyOf={(h) => hitKey(h)}
-                    label="Search results"
+                    label="搜索结果"
                     thumbnailOf={(h) => hitCover(h, lib)}
                     cardWidth={264}
                     stageHeight={470}
@@ -179,7 +179,7 @@ function openHit(
   player: ReturnType<typeof usePlayerStore.getState>,
   navigate: (v: 'album' | 'artist' | 'playlist', p: Record<string, string>) => void,
 ) {
-  if (h.kind === 'song') player.playSong(h.song.id, lib.songs.map((s) => s.id), 'Search')
+  if (h.kind === 'song') player.playSong(h.song.id, lib.songs.map((s) => s.id), '搜索')
   else if (h.kind === 'album') navigate('album', { albumId: h.album.id })
   else if (h.kind === 'artist') navigate('artist', { artistId: h.artist.id })
   else navigate('playlist', { playlistId: h.playlist.id })
@@ -198,20 +198,20 @@ function HitCard({ hit, lib, player, navigate, close }: {
     : <span className="grid h-full w-full place-items-center" style={{ background: 'linear-gradient(140deg, #1a1d26, #0d0f15)' }}><IconNote size={26} /></span>
 
   const label =
-    hit.kind === 'song' ? 'Song' : hit.kind === 'album' ? 'Album' : hit.kind === 'artist' ? 'Artist' : 'Playlist'
+    hit.kind === 'song' ? '歌曲' : hit.kind === 'album' ? '专辑' : hit.kind === 'artist' ? '艺术家' : '歌单'
   const title =
     hit.kind === 'song' ? hit.song.title : hit.kind === 'album' ? hit.album.name : hit.kind === 'artist' ? hit.artist.name : hit.playlist.name
   const sub =
     hit.kind === 'song' ? `${hit.song.artist} · ${fmtTime(hit.song.duration)}`
       : hit.kind === 'album' ? hit.album.artist
-        : hit.kind === 'artist' ? `${hit.artist.albumIds.length} album${hit.artist.albumIds.length !== 1 ? 's' : ''}`
-          : `${hit.playlist.songIds.length} track${hit.playlist.songIds.length !== 1 ? 's' : ''}`
+        : hit.kind === 'artist' ? `${hit.artist.albumIds.length} 张专辑`
+          : `${hit.playlist.songIds.length} 首`
 
   const go = () => { close(); openHit(hit, lib, player, navigate) }
 
   return (
     <StageCardBody
-      artLabel={`Open ${title}`}
+      artLabel={`打开 ${title}`}
       art={art}
       title={title}
       subtitle={sub}
@@ -219,7 +219,7 @@ function HitCard({ hit, lib, player, navigate, close }: {
       onActivate={go}
       actions={
         <>
-          <span onClick={go} className="lg-btn lg-btn-primary grid h-10 w-10 cursor-pointer place-items-center" role="button" aria-label={`Open ${title}`}>
+          <span onClick={go} className="lg-btn lg-btn-primary grid h-10 w-10 cursor-pointer place-items-center" role="button" aria-label={`打开 ${title}`}>
             <IconPlay size={16} />
           </span>
           <span className="ml-auto pr-2 text-[11px] uppercase tracking-[0.2em]" style={{ color: 'var(--c-ink-faint)' }}>{label}</span>

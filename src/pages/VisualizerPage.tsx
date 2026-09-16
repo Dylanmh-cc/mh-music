@@ -9,7 +9,19 @@ import { Visualizer } from '../components/player/Visualizer'
 import { IconPlay, IconPause, IconNext, IconPrev, IconClose } from '../components/icons'
 import { rgba } from '../lib/color'
 import { DEFAULT_PALETTE } from '../lib/color'
-import type { BgMode, PerfMode, ParticleColor, ParticleDensity, Palette } from '../types/models'
+import type { BgMode, PerfMode, ParticleColor, ParticleDensity, Palette, VisualizerMode } from '../types/models'
+
+/** The small caps tag above each mode card — the mode's own id, in Chinese. */
+const MODE_TAGS: Record<VisualizerMode, string> = {
+  terrain: '地貌',
+  waveform: '波形',
+  circular: '环形',
+  particles: '粒子',
+  vinylWave: '波纹',
+  galaxy: '星系',
+  aurora: '极光',
+  minimal: '极简',
+}
 
 /**
  * Visualizer — the studio.
@@ -36,14 +48,14 @@ export function VisualizerPage() {
     <div className="pb-6">
       <header className="flex flex-wrap items-end justify-between gap-3 pl-1">
         <div>
-          <h1 className="mh-display text-[30px] md:text-[36px]">Visualizer</h1>
+          <h1 className="mh-display text-[30px] md:text-[36px]">可视化效果</h1>
           <p className="mt-1.5 text-[13px]" style={{ color: 'var(--c-ink-dim)' }}>
-            {album ? `${album.name} — ${album.artist}` : 'Play something to see it move'}
+            {album ? `${album.name} — ${album.artist}` : '播放一首即可看到它动起来'}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <GlassButton onClick={() => { useUiStore.getState().toggleNowPlaying(true); pushPath('/player') }}>
-            Open the space
+            进入播放空间
           </GlassButton>
         </div>
       </header>
@@ -58,23 +70,23 @@ export function VisualizerPage() {
           {/* a light transport, so the stage can be auditioned without leaving */}
           <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 p-3">
             <div className="glass-soft flex items-center gap-1.5 rounded-full p-1.5">
-              <IconButton label="Previous" className="h-9 w-9" onClick={() => player.prev()}><IconPrev size={16} /></IconButton>
+              <IconButton label="上一首" className="h-9 w-9" onClick={() => player.prev()}><IconPrev size={16} /></IconButton>
               <button
                 className="lg-btn lg-btn-primary grid h-11 w-11 place-items-center rounded-full"
                 onClick={player.toggle}
-                aria-label={player.isPlaying ? 'Pause' : 'Play'}
+                aria-label={player.isPlaying ? '暂停' : '播放'}
               >
                 {player.isPlaying ? <IconPause size={18} /> : <IconPlay size={18} />}
               </button>
-              <IconButton label="Next" className="h-9 w-9" onClick={() => player.next()}><IconNext size={16} /></IconButton>
+              <IconButton label="下一首" className="h-9 w-9" onClick={() => player.next()}><IconNext size={16} /></IconButton>
             </div>
           </div>
         </div>
       </GlassPanel>
 
       {/* ── modes ──────────────────────────────────────────────────────── */}
-      <section className="mt-7" aria-label="Visualizer modes">
-        <h2 className="mh-display mb-3 pl-1 text-[17px]">Mode</h2>
+      <section className="mt-7" aria-label="可视化效果模式">
+        <h2 className="mh-display mb-3 pl-1 text-[17px]">模式</h2>
         <div className="mh-mode-grid">
           {VISUALIZER_MODE_LABELS.map((m) => (
             <button
@@ -84,7 +96,7 @@ export function VisualizerPage() {
               aria-pressed={s.settings.visualizerMode === m.id}
               onClick={() => s.setSetting('visualizerMode', m.id)}
             >
-              <div className="mh-overline" style={{ color: 'var(--c-ink-faint)' }}>{m.id}</div>
+              <div className="mh-overline" style={{ color: 'var(--c-ink-faint)' }}>{MODE_TAGS[m.id]}</div>
               <div className="mt-1 text-[14px] font-semibold">{m.label}</div>
               <p className="mt-1.5 text-[11.5px] leading-relaxed" style={{ color: 'var(--c-ink-dim)' }}>{m.hint}</p>
             </button>
@@ -93,8 +105,8 @@ export function VisualizerPage() {
       </section>
 
       {/* ── the room it plays in ───────────────────────────────────────── */}
-      <section className="mt-8" aria-label="Playback background">
-        <h2 className="mh-display mb-3 pl-1 text-[17px]">Background</h2>
+      <section className="mt-8" aria-label="播放背景">
+        <h2 className="mh-display mb-3 pl-1 text-[17px]">背景</h2>
         <div className="mh-mode-grid">
           {BG_MODE_LABELS.map((b) => (
             <button
@@ -112,22 +124,22 @@ export function VisualizerPage() {
       </section>
 
       {/* ── how it responds ────────────────────────────────────────────── */}
-      <section className="mt-8 grid gap-4 lg:grid-cols-2" aria-label="Response">
+      <section className="mt-8 grid gap-4 lg:grid-cols-2" aria-label="响应">
         <GlassPanel tier="soft" className="rounded-3xl p-5">
-          <h2 className="mh-display text-[16px]">Response</h2>
+          <h2 className="mh-display text-[16px]">响应</h2>
           <div className="mt-4 space-y-4">
-            <Slider label="Music sensitivity" value={v.sensitivity} onChange={(x) => set('sensitivity', x)} hint="How hard the analyser drives the visuals" />
-            <Slider label="Beat response" value={v.beatResponse} onChange={(x) => set('beatResponse', x)} hint="How readily drum hits register" />
-            <Slider label="Glow" value={v.glow} onChange={(x) => set('glow', x)} hint="How much light the interface throws" />
-            <Slider label="Background darkness" value={v.darkness} onChange={(x) => set('darkness', x)} hint="How far the room is pushed down behind the music" />
-            <Slider label="3D depth" value={v.depth} onChange={(x) => set('depth', x)} hint="How far the album stage reaches into the room" />
+            <Slider label="音乐灵敏度" value={v.sensitivity} onChange={(x) => set('sensitivity', x)} hint="分析器驱动视觉的强度" />
+            <Slider label="鼓点灵敏度" value={v.beatResponse} onChange={(x) => set('beatResponse', x)} hint="鼓点被识别的难易程度" />
+            <Slider label="辉光" value={v.glow} onChange={(x) => set('glow', x)} hint="界面散发的光量" />
+            <Slider label="背景暗度" value={v.darkness} onChange={(x) => set('darkness', x)} hint="音乐背后房间被压暗的程度" />
+            <Slider label="3D 纵深" value={v.depth} onChange={(x) => set('depth', x)} hint="专辑舞台伸入房间的深度" />
           </div>
         </GlassPanel>
 
         <GlassPanel tier="soft" className="rounded-3xl p-5">
-          <h2 className="mh-display text-[16px]">Detail & performance</h2>
+          <h2 className="mh-display text-[16px]">细节与性能</h2>
           <div className="mt-4 space-y-5">
-            <Field label="Colour source" hint="Random gives every element its own scattered hue">
+            <Field label="取色来源" hint="随机:每个元素各自散色">
               <div className="flex gap-1.5">
                 {PARTICLE_COLOR_LABELS.map((c) => (
                   <Chip key={c.id} on={s.settings.particleColor === c.id} onClick={() => s.setSetting('particleColor', c.id as ParticleColor)}>
@@ -137,17 +149,17 @@ export function VisualizerPage() {
               </div>
             </Field>
 
-            <Field label="Detail" hint="How finely the visualiser is resolved">
+            <Field label="细节" hint="可视化效果的分辨率">
               <div className="flex gap-1.5">
                 {(['low', 'medium', 'high', 'ultra'] as ParticleDensity[]).map((d) => (
                   <Chip key={d} on={v.density === d} onClick={() => set('density', d)}>
-                    {d[0].toUpperCase() + d.slice(1)}
+                    {{ low: '低', medium: '中', high: '高', ultra: '极高' }[d]}
                   </Chip>
                 ))}
               </div>
             </Field>
 
-            <Field label="Performance mode" hint="Audio always has priority; this decides what the visuals may spend">
+            <Field label="性能模式" hint="音频永远优先;这里决定视觉能用多少性能">
               <div className="flex flex-wrap gap-1.5">
                 {PERF_MODE_LABELS.map((p) => (
                   <Chip key={p.id} on={v.perf === p.id} onClick={() => set('perf', p.id as PerfMode)} title={p.hint}>
@@ -166,7 +178,7 @@ export function VisualizerPage() {
 
       <div className="mt-6 pl-1">
         <button className="text-[12.5px] underline" onClick={() => { useUiStore.getState().navigate('settings'); pushPath('/settings') }}>
-          All settings
+          全部设置
         </button>
       </div>
     </div>

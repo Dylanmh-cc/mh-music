@@ -50,7 +50,7 @@ export function ProgressBar({ compact = false }: { compact?: boolean }) {
       ref={wrapRef}
       className={cn('group relative flex w-full cursor-pointer touch-none items-center', compact ? 'h-4' : 'h-5')}
       role="slider"
-      aria-label="Seek"
+      aria-label="播放进度"
       aria-valuemin={0}
       aria-valuemax={Math.floor(duration)}
       aria-valuenow={Math.floor(position)}
@@ -119,7 +119,7 @@ function PlayButton({ size = 46 }: { size?: number }) {
       onClick={toggle}
       className="lg-btn lg-btn-primary grid place-items-center"
       style={{ width: size, height: size }}
-      aria-label={isPlaying ? 'Pause' : 'Play'}
+      aria-label={isPlaying ? '暂停' : '播放'}
     >
       <motion.span
         key={isPlaying ? 'pause' : 'play'}
@@ -143,7 +143,7 @@ function VolumeControl() {
 
   return (
     <div className="group flex items-center gap-2">
-      <button className="icon-btn h-9 w-9" onClick={toggleMute} aria-label={muted ? 'Unmute' : 'Mute'}>
+      <button className="icon-btn h-9 w-9" onClick={toggleMute} aria-label={muted ? '取消静音' : '静音'}>
         {muted || volume === 0 ? <IconVolumeMute size={17} /> : <IconVolume size={17} />}
       </button>
       <input
@@ -155,7 +155,7 @@ function VolumeControl() {
         onChange={(e) => setVolume(parseFloat(e.target.value))}
         className="w-[100px]"
         style={{ ['--fill' as any]: `${eff * 100}%` }}
-        aria-label="Volume"
+        aria-label="音量"
       />
     </div>
   )
@@ -163,7 +163,6 @@ function VolumeControl() {
 
 export function ControlBar() {
   const songId = usePlayerStore((s) => s.songId)
-  const isPlaying = usePlayerStore((s) => s.isPlaying)
   const player = usePlayerStore()
   const lib = useLibraryStore()
   const ui = useUiStore()
@@ -179,8 +178,8 @@ export function ControlBar() {
           {/* no record-shaped control here: it reads as a button that does
               nothing. One line of intent and one clear action instead. */}
           <div className="min-w-0 flex-1">
-            <div className="text-[13px] font-medium">Nothing playing</div>
-            <div className="truncate text-[12px]" style={{ color: 'var(--c-ink-faint)' }}>Pick an album and drop the needle.</div>
+            <div className="text-[13px] font-medium">暂时没有播放</div>
+            <div className="truncate text-[12px]" style={{ color: 'var(--c-ink-faint)' }}>挑一张专辑,放下唱针。</div>
           </div>
           <button
             className="lg-btn shrink-0 px-4 py-2 text-[12.5px] font-medium"
@@ -197,7 +196,7 @@ export function ControlBar() {
     <div className="fixed inset-x-0 bottom-[78px] z-30 px-3 md:bottom-0 md:px-4 md:pb-4">
       <footer
         className="glass-pill group/bar relative mx-auto w-full max-w-[1240px] overflow-hidden rounded-[24px] px-3 py-3 md:px-6 md:py-3.5"
-        aria-label="Player controls"
+        aria-label="播放控制"
       >
         {/* accent hairline that lights up with the album theme */}
         <span
@@ -209,15 +208,14 @@ export function ControlBar() {
           {/* now playing chip with a spinning micro-record */}
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <button
-              className="group relative h-12 w-12 shrink-0 md:h-14 md:w-14"
+              className="group relative h-12 w-12 shrink-0 overflow-hidden rounded-xl md:h-14 md:w-14"
               onClick={() => ui.toggleNowPlaying(true)}
-              aria-label="Open Now Playing"
+              aria-label="打开正在播放"
             >
-              <span className={`vinyl vinyl-spin absolute inset-0 ${isPlaying ? '' : 'vinyl-paused'}`} />
               <img
                 src={song.coverUrl}
                 alt=""
-                className="absolute inset-[16%] rounded-full object-cover shadow-lg transition-transform duration-500 group-hover:scale-105"
+                className="absolute inset-0 h-full w-full object-cover shadow-lg transition-transform duration-500 group-hover:scale-105"
               />
             </button>
             <div className="min-w-0 flex-1">
@@ -229,7 +227,7 @@ export function ControlBar() {
             <button
               className="icon-btn hidden h-10 w-10 shrink-0 sm:flex"
               onClick={() => lib.toggleFavSong(song.id)}
-              aria-label={fav ? 'Remove from favorites' : 'Add to favorites'}
+              aria-label={fav ? '取消收藏' : '加入收藏'}
               style={{ color: fav ? 'var(--c-accent-2)' : undefined }}
             >
               {fav ? <IconHeartFill size={17} /> : <IconHeart size={17} />}
@@ -240,7 +238,7 @@ export function ControlBar() {
                 const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
                 ui.openCtx(r.left - 210, r.top - 8, songMenuItems(song))
               }}
-              aria-label={`More options for ${song.title}`}
+              aria-label={`${song.title} 的更多选项`}
             >
               <IconMore size={17} />
             </button>
@@ -250,11 +248,11 @@ export function ControlBar() {
           <div className="flex flex-col items-center gap-1 md:w-[40%] md:max-w-[560px]">
             <div className="flex items-center gap-1.5 md:gap-3">
               <PlayModeButtons size={34} className="mr-0.5 hidden sm:flex" />
-              <button className="icon-btn h-11 w-11" onClick={() => player.prev()} aria-label="Previous">
+              <button className="icon-btn h-11 w-11" onClick={() => player.prev()} aria-label="上一首">
                 <IconPrev size={20} />
               </button>
               <PlayButton size={52} />
-              <button className="icon-btn h-11 w-11" onClick={() => player.next()} aria-label="Next">
+              <button className="icon-btn h-11 w-11" onClick={() => player.next()} aria-label="下一首">
                 <IconNext size={20} />
               </button>
             </div>
@@ -268,18 +266,18 @@ export function ControlBar() {
             <button
               className={cn('icon-btn h-11 w-11', rightTab === 'queue' && 'active')}
               onClick={() => ui.setRightTab('queue')}
-              aria-label="Queue"
+              aria-label="播放队列"
             >
               <IconQueue size={19} />
             </button>
             <button
               className={cn('icon-btn h-11 w-11', rightTab === 'lyrics' && 'active')}
               onClick={() => ui.setRightTab('lyrics')}
-              aria-label="Lyrics"
+              aria-label="歌词"
             >
               <IconLyrics size={19} />
             </button>
-            <button className="icon-btn h-11 w-11" onClick={() => ui.toggleNowPlaying(true)} aria-label="Full screen player">
+            <button className="icon-btn h-11 w-11" onClick={() => ui.toggleNowPlaying(true)} aria-label="全屏播放器">
               <IconExpand size={18} />
             </button>
           </div>

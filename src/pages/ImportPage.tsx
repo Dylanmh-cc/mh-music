@@ -16,9 +16,9 @@ import type { ImportEntry } from '../services/importer'
  */
 
 const SUPPORTED = [
-  { ext: 'JSON', hint: 'Spotify-style or generic dumps: name, artist, album, tracks[]' },
-  { ext: 'M3U / M3U8', hint: 'Plain or extended playlists, with #EXTINF metadata' },
-  { ext: 'CSV', hint: 'Comma or semicolon separated: title, artist, album' },
+  { ext: 'JSON', hint: 'Spotify 风格或通用导出:name、artist、album、tracks[]' },
+  { ext: 'M3U / M3U8', hint: '普通或扩展歌单,带 #EXTINF 元数据' },
+  { ext: 'CSV', hint: '逗号或分号分隔:title、artist、album' },
 ]
 
 export function ImportPage() {
@@ -45,11 +45,10 @@ export function ImportPage() {
   return (
     <div className="pb-6">
       <header className="pl-1">
-        <h1 className="mh-display text-[30px] md:text-[36px]">Import a playlist</h1>
+        <h1 className="mh-display text-[30px] md:text-[36px]">导入歌单</h1>
         <p className="mt-1.5 max-w-[560px] text-[13px] leading-relaxed" style={{ color: 'var(--c-ink-dim)' }}>
-          Export the playlist from the other player, then drop the file here. Tracks that exist in your
-          library are matched and added; anything missing is listed so you can see exactly what did not land.
-          Nothing leaves this device.
+          先在原来的播放器里导出歌单,再把文件拖到这里。音乐库中已有的曲目会被匹配并加入;
+          缺失的会列出来,让你清楚看到哪些没有导入成功。所有处理都不离开这台设备。
         </p>
       </header>
 
@@ -76,12 +75,12 @@ export function ImportPage() {
         >
           <IconImport size={26} />
           <p className="mt-3 text-[14px] font-medium">
-            {busy ? 'Reading the playlist…' : 'Drop the playlist file here'}
+            {busy ? '正在读取歌单…' : '把歌单文件拖到这里'}
           </p>
           <p className="mt-1 text-[12.5px]" style={{ color: 'var(--c-ink-dim)' }}>JSON · M3U · M3U8 · CSV</p>
           <div className="mt-4">
             <GlassButton variant="accent" onClick={() => inputRef.current?.click()} disabled={busy}>
-              Choose file
+              选择文件
             </GlassButton>
           </div>
           <input
@@ -90,7 +89,7 @@ export function ImportPage() {
             accept=".json,.m3u,.m3u8,.csv,text/plain,application/json"
             className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) void run(f); e.target.value = '' }}
-            aria-label="Playlist file"
+            aria-label="歌单文件"
           />
         </div>
 
@@ -110,11 +109,11 @@ export function ImportPage() {
             <IconCheck size={16} />
             <strong className="text-[14px]">{report.name}</strong>
             <span className="text-[12.5px]" style={{ color: 'var(--c-ink-dim)' }}>
-              {report.matched} matched{report.unmatched.length ? ` · ${report.unmatched.length} missing` : ''}
+              匹配 {report.matched} 首{report.unmatched.length ? ` · 缺失 ${report.unmatched.length} 首` : ''}
             </span>
             <span className="ml-auto flex gap-2">
               <GlassButton onClick={() => { navigate('playlists'); pushPath('/playlists') }}>
-                Open playlists
+                打开歌单
               </GlassButton>
             </span>
           </div>
@@ -122,12 +121,12 @@ export function ImportPage() {
           {report.unmatched.length > 0 && (
             <>
               <p className="mt-4 text-[12px]" style={{ color: 'var(--c-ink-faint)' }}>
-                Missing tracks — kept in the report, never deleted. Add the files and import again to match them.
+                缺失的曲目 —— 会保留在报告里,绝不删除。补齐文件后再次导入即可匹配。
               </p>
               <ul className="mt-2 max-h-[240px] space-y-1 overflow-y-auto pr-1">
                 {report.unmatched.map((e, i) => (
                   <li key={i} className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,0.04)' }}>
-                    <span className="min-w-0 flex-1 truncate text-[12.5px]">{e.title || 'Untitled'}</span>
+                    <span className="min-w-0 flex-1 truncate text-[12.5px]">{e.title || '未命名'}</span>
                     <span className="shrink-0 truncate text-[11.5px]" style={{ color: 'var(--c-ink-dim)' }}>
                       {[e.artist, e.album].filter(Boolean).join(' · ')}
                     </span>
@@ -141,18 +140,18 @@ export function ImportPage() {
 
       {playlists.length > 0 && (
         <p className="mt-5 pl-1 text-[12.5px]" style={{ color: 'var(--c-ink-faint)' }}>
-          You already have {playlists.length} playlist{playlists.length === 1 ? '' : 's'}.{' '}
+          你已经有 {playlists.length} 个歌单。{' '}
           <button className="underline" onClick={() => { navigate('folders'); pushPath('/folders') }}>
-            Add a music folder
+            添加音乐文件夹
           </button>{' '}
-          to match more of an import.
+          匹配到更多导入内容。
         </p>
       )}
 
       <div className="mt-6 flex items-center gap-2 pl-1">
         <IconFolder size={15} />
         <button className="text-[12.5px] underline" onClick={() => { navigate('folders'); pushPath('/folders') }}>
-          Manage music folders
+          管理音乐文件夹
         </button>
       </div>
     </div>

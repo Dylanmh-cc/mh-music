@@ -40,15 +40,15 @@ export function PlaylistDetailView() {
       .slice(0, 60)
   }, [pl, lib.songs, query])
 
-  if (!pl) return <EmptyState title="Playlist not found." />
+  if (!pl) return <EmptyState title="找不到这个歌单。" />
 
   const pickCover = async (file: File | undefined) => {
     if (!file) return
     try {
       libActions.setPlaylistCover(pl.id, await fileToPlaylistCover(file))
-      toast('success', 'Playlist cover updated.')
+      toast('success', '歌单封面已更新。')
     } catch {
-      toast('error', 'That image could not be read.')
+      toast('error', '无法读取该图片。')
     }
   }
 
@@ -61,8 +61,8 @@ export function PlaylistDetailView() {
           <button
             className="glass-soft block h-full w-full overflow-hidden rounded-2xl"
             onClick={() => coverInput.current?.click()}
-            aria-label="Change playlist cover"
-            title="Change playlist cover"
+            aria-label="更换歌单封面"
+            title="更换歌单封面"
           >
             {pl.coverUrl ? (
               <img src={pl.coverUrl} alt="" className="h-full w-full object-cover" />
@@ -73,7 +73,7 @@ export function PlaylistDetailView() {
               </span>
             )}
             <span className="absolute inset-0 grid place-items-center rounded-2xl bg-black/55 text-[12px] opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-              Change cover
+              更换封面
             </span>
           </button>
           <input
@@ -82,12 +82,12 @@ export function PlaylistDetailView() {
             accept="image/*"
             className="hidden"
             onChange={(e) => { void pickCover(e.target.files?.[0]); e.target.value = '' }}
-            aria-label="Playlist cover image"
+            aria-label="歌单封面图片"
           />
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="text-[10.5px] uppercase tracking-[0.3em]" style={{ color: 'var(--c-ink-faint)' }}>Playlist</div>
+          <div className="text-[10.5px] uppercase tracking-[0.3em]" style={{ color: 'var(--c-ink-faint)' }}>歌单</div>
           {editing ? (
             <form
               className="mt-1 flex items-center gap-2"
@@ -98,41 +98,41 @@ export function PlaylistDetailView() {
                 value={draftName}
                 onChange={(e) => setDraftName(e.target.value)}
                 className="rounded-xl bg-white/8 px-3 py-1.5 text-[26px] font-bold outline-none"
-                aria-label="Playlist name"
+                aria-label="歌单名称"
               />
-              <button type="submit" className="icon-btn h-9 w-9" aria-label="Save name"><IconCheck size={16} /></button>
-              <button type="button" className="icon-btn h-9 w-9" onClick={() => setEditing(false)} aria-label="Cancel"><IconClose size={16} /></button>
+              <button type="submit" className="icon-btn h-9 w-9" aria-label="保存名称"><IconCheck size={16} /></button>
+              <button type="button" className="icon-btn h-9 w-9" onClick={() => setEditing(false)} aria-label="取消"><IconClose size={16} /></button>
             </form>
           ) : (
             <h1 className="mt-1 text-[28px] font-bold tracking-tight">{pl.name}</h1>
           )}
           <p className="mt-1 text-[13px]" style={{ color: 'var(--c-ink-dim)' }}>
-            {songs.length} tracks · {fmtTime(songs.reduce((a, s) => a + s.duration, 0))}
+            {songs.length} 首 · {fmtTime(songs.reduce((a, s) => a + s.duration, 0))}
           </p>
           <div className="mt-4 flex flex-wrap gap-2.5">
             <button className="lg-btn lg-btn-primary flex items-center gap-2 px-5 py-2.5 text-[13px] font-semibold" disabled={!songs.length} onClick={() => player.playSong(pl.songIds[0], pl.songIds, pl.name)}>
-              <IconPlay size={13} /> Play
+              <IconPlay size={13} /> 播放
             </button>
             <GlassButton primary={adding} onClick={() => setAdding((v) => !v)}>
-              <span className="flex items-center gap-2"><IconPlus size={13} /> Add songs</span>
+              <span className="flex items-center gap-2"><IconPlus size={13} /> 添加歌曲</span>
             </GlassButton>
             <GlassButton disabled={!songs.length} onClick={() => {
               const list = shuffle(songs)
-              player.playSong(list[0].id, list.map((s) => s.id), pl.name + ' shuffle')
+              player.playSong(list[0].id, list.map((s) => s.id), pl.name + ' · 随机')
               if (!player.shuffle) player.toggleShuffle()
             }}>
-              <span className="flex items-center gap-2"><IconShuffle size={13} /> Shuffle</span>
+              <span className="flex items-center gap-2"><IconShuffle size={13} /> 随机播放</span>
             </GlassButton>
             <GlassButton onClick={() => { setDraftName(pl.name); setEditing(true) }}>
-              <span className="flex items-center gap-2"><IconEdit size={13} /> Rename</span>
+              <span className="flex items-center gap-2"><IconEdit size={13} /> 重命名</span>
             </GlassButton>
             {pl.coverUrl && (
-              <GlassButton onClick={() => { libActions.setPlaylistCover(pl.id, undefined); toast('info', 'Cover reset to the tracks.') }}>
-                Reset cover
+              <GlassButton onClick={() => { libActions.setPlaylistCover(pl.id, undefined); toast('info', '封面已恢复为曲目拼图。') }}>
+                恢复默认封面
               </GlassButton>
             )}
             <GlassButton onClick={() => confirmDeletePlaylist(pl, () => ui.navigate('playlists'))}>
-              <span className="flex items-center gap-2 text-[#ff9a8a]"><IconTrash size={13} /> Delete</span>
+              <span className="flex items-center gap-2 text-[#ff9a8a]"><IconTrash size={13} /> 删除</span>
             </GlassButton>
           </div>
         </div>
@@ -146,11 +146,11 @@ export function PlaylistDetailView() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search your library to add…"
+              placeholder="在音乐库中搜索并添加…"
               className="min-w-0 flex-1 bg-transparent text-[13.5px] outline-none"
-              aria-label="Search songs to add"
+              aria-label="搜索要添加的歌曲"
             />
-            <button className="icon-btn h-8 w-8" onClick={() => setAdding(false)} aria-label="Close the picker"><IconClose size={15} /></button>
+            <button className="icon-btn h-8 w-8" onClick={() => setAdding(false)} aria-label="关闭选择面板"><IconClose size={15} /></button>
           </div>
 
           <div className="mh-divider my-3" />
@@ -158,8 +158,8 @@ export function PlaylistDetailView() {
           {candidates.length === 0 ? (
             <p className="py-4 text-center text-[12.5px]" style={{ color: 'var(--c-ink-faint)' }}>
               {lib.songs.length === 0
-                ? 'Your library is empty — add a music folder first.'
-                : 'Nothing left to add from the library.'}
+                ? '音乐库是空的 —— 请先添加音乐文件夹。'
+                : '音乐库里已经没有可添加的曲目。'}
             </p>
           ) : (
             <ul className="mh-scroll max-h-[280px] space-y-1 overflow-y-auto pr-1">
@@ -168,7 +168,7 @@ export function PlaylistDetailView() {
                   <button
                     className="flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors duration-200 hover:bg-white/8"
                     onClick={() => libActions.addToPlaylist(pl.id, [s.id])}
-                    aria-label={`Add ${s.title} to ${pl.name}`}
+                    aria-label={`将 ${s.title} 添加到 ${pl.name}`}
                   >
                     <img src={s.coverUrl} alt="" loading="lazy" className="h-10 w-10 rounded-lg object-cover" />
                     <span className="min-w-0 flex-1">
@@ -189,8 +189,8 @@ export function PlaylistDetailView() {
 
       {songs.length === 0 ? (
         <EmptyState
-          title="This playlist is empty."
-          hint={adding ? 'Pick tracks above to fill it.' : 'Use “Add songs” to pick tracks, or right-click any song → Add to Playlist.'}
+          title="这个歌单还是空的。"
+          hint={adding ? '从上面挑选曲目来填充歌单。' : '用「添加歌曲」挑选曲目,或右键任意歌曲 → 添加到歌单。'}
         />
       ) : (
         <Reorder.Group

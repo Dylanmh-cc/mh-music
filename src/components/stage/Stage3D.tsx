@@ -49,6 +49,27 @@ export function Stage3D<T>({
   const justDragged = useRef(false)
   const followed = useRef<string | null>(null)
 
+  // Responsive stage: measure the viewport so the centred sleeve never
+  // overflows on narrow phones (where 320px would be wider than the screen).
+  const viewportRef = useRef<HTMLDivElement>(null)
+  const [containerW, setContainerW] = useState(1200)
+  useEffect(() => {
+    const el = viewportRef.current
+    if (!el) return
+    const update = () => setContainerW(el.clientWidth)
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  // Keep the sleeve inside the arrow buttons; shrink height with the card so
+  // the title row never collides with the bottom transport + mobile nav.
+  const effW = Math.min(cardWidth, Math.max(236, containerW - 88))
+  // The viewport clips, so it has to be tall enough for the whole card *as
+  // transformed*: the sleeve, the title block under it, the halo and the float.
+  // It was sized from the sleeve alone, which cut the bottom of every card.
+  const effH = Math.min(stageHeight, Math.max(440, effW + 240))
+
   const clamp = useCallback((i: number) => Math.max(0, Math.min(items.length - 1, i)), [items.length])
 
   // centre the stage on whatever is playing, but only when it actually changes
@@ -81,7 +102,7 @@ export function Stage3D<T>({
       className={cn('relative mt-2 outline-none', className)}
       tabIndex={0}
       role="region"
-      aria-label={`${label} — drag or use arrow keys`}
+      aria-label={`${label} —— 可拖动或使用方向键`}
       onKeyDown={(e) => {
         if (e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); snapTo(active + 1) }
         if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); snapTo(active - 1) }
@@ -92,15 +113,16 @@ export function Stage3D<T>({
           className="glass-soft grid h-10 w-10 shrink-0 place-items-center rounded-full transition hover:bg-white/10 disabled:opacity-20"
           onClick={() => snapTo(active - 1)}
           disabled={active === 0}
-          aria-label="Previous"
+          aria-label="上一首"
         >
           <IconBack size={17} />
         </button>
 
         <div
+          ref={viewportRef}
           className="relative min-w-0 flex-1 overflow-hidden"
           style={{
-            height: stageHeight,
+            height: effH,
             maskImage: 'linear-gradient(to right, transparent, #000 7%, #000 93%, transparent)',
             WebkitMaskImage: 'linear-gradient(to right, transparent, #000 7%, #000 93%, transparent)',
           }}
@@ -127,7 +149,7 @@ export function Stage3D<T>({
                   i={i}
                   dist={Math.abs(i - active)}
                   mx={mx}
-                  width={cardWidth}
+                  width={effW}
                   justDragged={justDragged}
                   onSnap={snapTo}
                 >
@@ -147,7 +169,7 @@ export function Stage3D<T>({
           className="glass-soft grid h-10 w-10 shrink-0 place-items-center rounded-full transition hover:bg-white/10 disabled:opacity-20"
           onClick={() => snapTo(active + 1)}
           disabled={active === items.length - 1}
-          aria-label="Next"
+          aria-label="下一首"
         >
           <IconForward size={17} />
         </button>
@@ -169,7 +191,7 @@ export function Stage3D<T>({
             <button
               key={keyOf(item)}
               onClick={() => snapTo(i, true)}
-              aria-label={`Show item ${i + 1}`}
+              aria-label={`显示第 ${i + 1} 项`}
               aria-current={i === active ? 'true' : undefined}
               className={cn(
                 'relative h-9 w-9 shrink-0 overflow-hidden rounded-md transition-all duration-300',

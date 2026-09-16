@@ -12,7 +12,7 @@ import { PlayModeButtons } from './player/PlayModeButtons'
 import { songMenuItems } from './songMenu'
 import {
   IconPlay, IconPause, IconNext, IconPrev, IconHeart, IconHeartFill, IconQueue,
-  IconVolume, IconVolumeMute, IconExpand, IconClose, IconMore, IconSearch,
+  IconVolume, IconVolumeMute, IconExpand, IconClose, IconMore, IconSearch, IconVinyl,
 } from './icons'
 
 /**
@@ -49,36 +49,45 @@ export function PlayerDock({
         {/* the seek hairline rides the capsule's top edge */}
         <SeekBar />
 
-        <div className="flex items-center gap-3.5">
-          {/* the record: artwork in the middle of a spinning disc */}
-          <button
-            className="group relative h-[52px] w-[52px] shrink-0"
-            onClick={() => (spaceOpen ? onCloseSpace() : onOpenSpace())}
-            aria-label={spaceOpen ? 'Close the music space' : 'Open the music space'}
-            title={spaceOpen ? 'Close the music space' : 'Open the music space'}
-          >
-            <span className={cn('vinyl vinyl-spin absolute inset-0', !isPlaying && 'vinyl-paused')} />
-            {song && <img src={song.coverUrl} alt="" className="absolute inset-[17%] rounded-full object-cover transition-transform duration-500 group-hover:scale-105" />}
-          </button>
+        <div className="flex items-center gap-2.5">
+          {/* The pair sits centred, but inside a box of fixed width: when the box
+              was sized by its own text, a longer artist name widened it and the
+              centring slid the sleeve sideways on every track change. Fixed
+              width + truncation means the sleeve never moves. */}
+          <div className="flex min-w-0 flex-1 items-center justify-center gap-2.5">
+            <div className="flex w-[360px] max-w-full items-center gap-2.5">
+              <button
+                className="group relative h-[52px] w-[52px] shrink-0 overflow-hidden rounded-xl"
+                onClick={() => (spaceOpen ? onCloseSpace() : onOpenSpace())}
+                aria-label={spaceOpen ? '退出播放空间' : '进入播放空间'}
+                title={spaceOpen ? '退出播放空间' : '进入播放空间'}
+                style={{ boxShadow: '0 8px 20px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.14)' }}
+              >
+                {song
+                  ? <img src={song.coverUrl} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  : <span className="grid h-full w-full place-items-center rounded-xl" style={{ background: 'var(--c-tint)' }}><IconVinyl size={20} /></span>}
+              </button>
 
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-[13.5px] font-medium leading-tight">{song ? song.title : 'Nothing playing'}</div>
-            <div className="mt-0.5 truncate text-[11.5px] leading-tight" style={{ color: 'var(--c-ink-dim)' }}>
-              {song ? `${song.artist}${album ? ` · ${album.name}` : ''}` : 'Your music universe is waiting'}
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[13.5px] font-medium leading-tight">{song ? song.title : '暂无播放'}</div>
+                <div className="mt-0.5 truncate text-[11.5px] leading-tight" style={{ color: 'var(--c-ink-dim)' }}>
+                  {song ? `${song.artist}${album ? ` · ${album.name}` : ''}` : '等待你的第一首歌'}
+                </div>
+              </div>
             </div>
           </div>
 
           {/* transport */}
           <div className="flex items-center gap-1.5">
             <PlayModeButtons size={32} className="mr-1 hidden lg:flex" />
-            <IconButton label="Previous" className="h-10 w-10" onClick={() => player.prev()}><IconPrev size={19} /></IconButton>
+            <IconButton label="上一首" className="h-10 w-10" onClick={() => player.prev()}><IconPrev size={19} /></IconButton>
             <PlayButton />
-            <IconButton label="Next" className="h-10 w-10" onClick={() => player.next()}><IconNext size={19} /></IconButton>
+            <IconButton label="下一首" className="h-10 w-10" onClick={() => player.next()}><IconNext size={19} /></IconButton>
           </div>
 
           <div className="hidden items-center gap-1 md:flex">
             <IconButton
-              label={fav ? 'Remove from favorites' : 'Add to favorites'}
+              label={fav ? '取消收藏' : '加入收藏'}
               className="h-10 w-10"
               active={fav}
               disabled={!song}
@@ -91,7 +100,7 @@ export function PlayerDock({
                 list button would open a second copy of the same thing. */}
             {!onHome && (
               <IconButton
-                label={queueOpen ? 'Hide the queue' : 'Show the queue'}
+                label={queueOpen ? '隐藏播放队列' : '显示播放队列'}
                 className="h-10 w-10"
                 active={queueOpen}
                 onClick={onToggleQueue}
@@ -99,18 +108,22 @@ export function PlayerDock({
                 <IconQueue size={18} />
               </IconButton>
             )}
-            {song && (
-              <IconButton
-                label={`More options for ${song.title}`}
-                className="h-10 w-10"
-                onClick={(e) => {
-                  const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
-                  ui.openCtx(r.left - 210, r.top - 8, songMenuItems(song))
-                }}
-              >
-                <IconMore size={17} />
-              </IconButton>
-            )}
+            {/* Rendered even with nothing loaded, and just disabled: showing it
+                only once a track arrived made the control cluster wider, which
+                squeezed the flexible middle and slid the sleeve sideways the
+                moment playback began. */}
+            <IconButton
+              label={song ? `${song.title} 的更多选项` : '更多选项'}
+              className="h-10 w-10"
+              disabled={!song}
+              onClick={(e) => {
+                if (!song) return
+                const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                ui.openCtx(r.left - 210, r.top - 8, songMenuItems(song))
+              }}
+            >
+              <IconMore size={17} />
+            </IconButton>
           </div>
         </div>
       </GlassPanel>
@@ -133,8 +146,8 @@ function PlayButton() {
       whileTap={{ scale: 0.94 }}
       className="mh-btn grid h-[50px] w-[50px] !p-0"
       data-variant="accent"
-      aria-label={isPlaying ? 'Pause' : 'Play'}
-      title={isPlaying ? 'Pause' : 'Play'}
+      aria-label={isPlaying ? '暂停' : '播放'}
+      title={isPlaying ? '暂停' : '播放'}
     >
       {isPlaying ? <IconPause size={21} /> : <IconPlay size={21} />}
     </motion.button>
@@ -149,7 +162,7 @@ function Volume() {
   const eff = muted ? 0 : volume
   return (
     <div className="flex items-center gap-1.5">
-      <IconButton label={muted ? 'Unmute' : 'Mute'} className="h-10 w-10" onClick={toggleMute}>
+      <IconButton label={muted ? '取消静音' : '静音'} className="h-10 w-10" onClick={toggleMute}>
         {muted || volume === 0 ? <IconVolumeMute size={17} /> : <IconVolume size={17} />}
       </IconButton>
       <input
@@ -157,7 +170,7 @@ function Volume() {
         onChange={(e) => setVolume(parseFloat(e.target.value))}
         className="w-[92px]"
         style={{ ['--fill' as any]: `${eff * 100}%` }}
-        aria-label="Volume"
+        aria-label="音量"
       />
     </div>
   )
@@ -200,7 +213,7 @@ function SeekBar() {
         ref={wrapRef}
         className="group relative h-4 cursor-pointer touch-none"
         role="slider"
-        aria-label="Seek"
+        aria-label="播放进度"
         aria-valuemin={0}
         aria-valuemax={Math.floor(duration)}
         aria-valuenow={Math.floor(position)}

@@ -74,7 +74,7 @@ export function LetterIndex({ present }: { present: Set<string> }) {
       <div
         className="glass-soft flex max-w-full items-center gap-px overflow-x-auto rounded-full px-2.5 py-1.5 no-scrollbar"
         role="navigation"
-        aria-label="Jump to letter"
+        aria-label="跳转到字母"
       >
         {letters.map((l) => {
           const live = present.has(l)
@@ -83,7 +83,7 @@ export function LetterIndex({ present }: { present: Set<string> }) {
               key={l}
               disabled={!live}
               onClick={() => jump(l)}
-              aria-label={`Jump to ${l}`}
+              aria-label={`跳转到 ${l}`}
               className={cn(
                 'grid h-6 min-w-[22px] place-items-center rounded-full text-[11px] transition-colors duration-200',
                 live ? 'hover:bg-white/12 hover:text-white' : 'cursor-default opacity-25',

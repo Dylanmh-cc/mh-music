@@ -1,0 +1,11 @@
+name = "mh-music-auth"
+main = "worker/auth-worker.mjs"
+compatibility_date = "2025-09-01"
+
+# KV namespace id is filled in by `npx wrangler kv namespace create MH_AUTH`
+[[kv_namespaces]]
+binding = "MH_AUTH"
+id = "8f776f0cfdc2475c92537b84e62b6c24"
+
+[vars]
+CORS_ORIGIN = "*"

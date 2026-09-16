@@ -95,7 +95,7 @@ function DeckSection({ name, albums, tracks }: { name?: string; albums: number; 
   }, [])
 
   return (
-    <section className="relative px-1 pb-2 pt-5 md:pt-6" aria-label="Turntable">
+    <section className="relative px-1 pb-2 pt-5 md:pt-6" aria-label="黑胶唱机">
       {/* two columns: the title, deck and transport on the left; the search,
           the playing card and the queue on the right, starting at the top */}
       <div className="flex flex-col gap-5 md:flex-row md:items-start md:gap-7">
@@ -107,8 +107,8 @@ function DeckSection({ name, albums, tracks }: { name?: string; albums: number; 
             Music Beyond Sound<span style={{ color: 'var(--c-accent-2)' }}>.</span>
           </h1>
           <p className="mt-1.5 text-[13px]" style={{ color: 'var(--c-ink-dim)' }}>
-            {albums} albums · {tracks} tracks · now spinning:{' '}
-            <span style={{ color: 'var(--c-ink)' }}>{album ? `${album.name} — ${album.artist}` : 'nothing yet'}</span>
+            {albums} 张专辑 · {tracks} 首曲目 · 正在播放:{' '}
+            <span style={{ color: 'var(--c-ink)' }}>{album ? `${album.name} — ${album.artist}` : '暂无'}</span>
           </p>
         </div>
       </div>
@@ -132,7 +132,7 @@ function DeckSection({ name, albums, tracks }: { name?: string; albums: number; 
                 />
                 <img
                   src={album.coverUrl}
-                  alt={`${album.name} artwork`}
+                  alt={`${album.name} 封面`}
                   draggable={false}
                   className="relative block w-full rounded-2xl object-cover"
                   style={{
@@ -152,14 +152,14 @@ function DeckSection({ name, albums, tracks }: { name?: string; albums: number; 
               >
                 <span className="flex flex-col items-center gap-2" style={{ color: 'var(--c-ink-faint)' }}>
                   <IconVinyl size={30} />
-                  <span className="text-[11.5px]">Nothing on the platter</span>
+                  <span className="text-[11.5px]">唱机上没有唱片</span>
                 </span>
               </span>
             )}
             <figcaption className="mt-3 w-full">
-              <span className="block truncate text-[13.5px] font-medium">{album?.name ?? 'Ready when you are'}</span>
+              <span className="block truncate text-[13.5px] font-medium">{album?.name ?? '随时开始'}</span>
               <span className="mt-0.5 block truncate text-[12px]" style={{ color: 'var(--c-ink-dim)' }}>
-                {album?.artist ?? 'Pick a sleeve from the rack'}
+                {album?.artist ?? '从架上挑一张'}
               </span>
             </figcaption>
           </figure>
@@ -190,16 +190,16 @@ function DeckSection({ name, albums, tracks }: { name?: string; albums: number; 
 
           {/* transport, centred on the deck above it */}
           <div className="flex flex-wrap items-center justify-center gap-2.5">
-            <IconButton label="Previous" className="h-14 w-14" onClick={() => player.prev()}><IconPrev size={24} /></IconButton>
+            <IconButton label="上一首" className="h-14 w-14" onClick={() => player.prev()}><IconPrev size={24} /></IconButton>
             <button
               className="lg-btn lg-btn-primary grid h-16 w-16 place-items-center rounded-full"
               onClick={player.toggle}
               disabled={!album}
-              aria-label={player.isPlaying ? 'Pause' : 'Play'}
+              aria-label={player.isPlaying ? '暂停' : '播放'}
             >
               {player.isPlaying ? <IconPause size={25} /> : <IconPlay size={25} />}
             </button>
-            <IconButton label="Next" className="h-14 w-14" onClick={() => player.next()}><IconNext size={24} /></IconButton>
+            <IconButton label="下一首" className="h-14 w-14" onClick={() => player.next()}><IconNext size={24} /></IconButton>
             {album && (
               <span className="ml-1 flex min-w-0 items-center gap-2 rounded-full px-3 py-1.5" style={{ background: 'rgba(255,255,255,0.05)' }}>
                 <span className={cn('eq-bars', !player.isPlaying && 'eq-paused')} aria-hidden="true"><i /><i /><i /></span>
@@ -280,11 +280,11 @@ function AlbumRow({ albums }: { albums: ReturnType<typeof useLibraryStore.getSta
   }, [])
 
   return (
-    <section className="relative mt-12" aria-label="All albums">
+    <section className="relative mt-12" aria-label="全部专辑">
       <div className="mb-5 pl-1">
-        <h2 className="mh-display text-[19px]">All Albums</h2>
+        <h2 className="mh-display text-[19px]">全部专辑</h2>
         <p className="mt-0.5 text-[12.5px]" style={{ color: 'var(--c-ink-faint)' }}>
-          {albums.length} in the rack · click a sleeve to put it on the deck
+          {albums.length} 张在架上 · 点击封面放上唱机
         </p>
       </div>
 
@@ -338,7 +338,7 @@ function GallerySleeve({ album, index }: {
       // to land on nothing at all.
       role="button"
       tabIndex={0}
-      aria-label={`Play ${album.name} by ${album.artist}`}
+      aria-label={`播放 ${album.name} —— ${album.artist}`}
       onClick={play}
       onDoubleClick={open}
       onKeyDown={(e) => {
@@ -376,7 +376,7 @@ function GallerySleeve({ album, index }: {
             <span className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/75 to-transparent px-2.5 pb-2 pt-6">
               <span className={cn('eq-bars', !player.isPlaying && 'eq-paused')} aria-hidden="true"><i /><i /><i /></span>
               <span className="text-[10.5px] font-semibold tracking-[0.14em]" style={{ color: 'rgba(255,255,255,0.86)' }}>
-                ON THE DECK
+                正在播放
               </span>
             </span>
           )}
@@ -394,17 +394,17 @@ function GallerySleeve({ album, index }: {
         </span>
         <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
           <IconButton
-            label={playingThis && player.isPlaying ? `Pause ${album.name}` : `Play ${album.name}`}
+            label={playingThis && player.isPlaying ? `暂停 ${album.name}` : `播放 ${album.name}`}
             className="h-9 w-9"
             onClick={(e) => { e.stopPropagation(); playingThis && player.isPlaying ? player.toggle() : play() }}
           >
             {playingThis && player.isPlaying ? <IconPause size={15} /> : <IconPlay size={15} />}
           </IconButton>
-          <IconButton label={`Open the ${album.name} album page`} className="h-9 w-9" onClick={(e) => { e.stopPropagation(); open() }}>
+          <IconButton label={`打开 ${album.name} 的专辑页面`} className="h-9 w-9" onClick={(e) => { e.stopPropagation(); open() }}>
             <IconDisc size={15} />
           </IconButton>
           <IconButton
-            label={fav ? 'Remove from favorites' : 'Add to favorites'}
+            label={fav ? '取消收藏' : '加入收藏'}
             className="h-9 w-9"
             active={fav}
             onClick={(e) => { e.stopPropagation(); lib.toggleFavAlbum(album.id) }}
@@ -412,18 +412,18 @@ function GallerySleeve({ album, index }: {
             {fav ? <IconHeartFill size={15} /> : <IconHeart size={15} />}
           </IconButton>
           <IconButton
-            label={`More options for ${album.name}`}
+            label={`${album.name} 的更多选项`}
             className="h-9 w-9"
             onClick={(e) => {
               e.stopPropagation()
               const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
               ui.openCtx(r.left - 210, r.bottom + 6, [
-                { label: 'Open Album', action: open },
-                { label: 'Play Album', action: play },
+                { label: '打开专辑', action: open },
+                { label: '播放专辑', action: play },
                 { sep: true },
-                { label: fav ? 'Remove from Favorites' : 'Add to Favorites', action: () => lib.toggleFavAlbum(album.id) },
+                { label: fav ? '取消收藏' : '加入收藏', action: () => lib.toggleFavAlbum(album.id) },
                 { sep: true },
-                { label: 'Delete Album', danger: true, action: () => confirmDeleteAlbum(album) },
+                { label: '删除专辑', danger: true, action: () => confirmDeleteAlbum(album) },
               ])
             }}
           >
@@ -445,17 +445,17 @@ function SearchBar() {
     <button
       className="glass-soft flex h-11 w-full items-center gap-2.5 rounded-full px-4 text-left transition-colors duration-200 hover:bg-white/8"
       onClick={() => setSearchOpen(true)}
-      aria-label="Search songs, artists, albums and playlists"
-      title="Search — or press /"
+      aria-label="搜索歌曲、艺术家、专辑和歌单"
+      title="搜索 — 或按 /"
     >
       <IconSearch size={16} />
       <span className="min-w-0 flex-1 truncate text-[13px]" style={{ color: 'var(--c-ink-faint)' }}>
-        Search songs, artists, albums…
+        搜索歌曲、艺术家、专辑…
       </span>
       <kbd className="mh-mono hidden shrink-0 rounded-md px-1.5 py-0.5 text-[10px] md:block" style={{ background: 'rgba(255,255,255,0.07)', color: 'var(--c-ink-faint)' }}>
         /
       </kbd>
-      <span className="sr-only">{lib.songs.length} tracks in the library</span>
+      <span className="sr-only">{lib.songs.length} 首曲目在音乐库中</span>
     </button>
   )
 }
@@ -475,14 +475,14 @@ function EmptyUniverse({ onAdd, onImport }: { onAdd: () => void; onImport: () =>
             <IconVinyl size={30} />
           </span>
         </motion.div>
-        <h2 className="mh-display mt-8 text-[24px]">Your music space is empty.</h2>
+        <h2 className="mh-display mt-8 text-[24px]">你的音乐空间还是空的。</h2>
         <p className="mt-2 text-[13.5px] leading-relaxed" style={{ color: 'var(--c-ink-dim)' }}>
-          Point MH Music at a folder of music and the rack fills up. Tags, artwork and lyrics are read right here
-          in your browser — nothing is uploaded.
+          把 MH Music 指向一个音乐文件夹,唱片架就会填满。标签、封面与歌词都在浏览器里就地读取
+          —— 不会上传任何内容。
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2.5">
-          <GlassButton variant="accent" size="lg" onClick={onAdd}><IconFolder size={15} /> Add Music Folder</GlassButton>
-          <GlassButton size="lg" onClick={onImport}><IconImport size={15} /> Import Playlist</GlassButton>
+          <GlassButton variant="accent" size="lg" onClick={onAdd}><IconFolder size={15} /> 添加音乐文件夹</GlassButton>
+          <GlassButton size="lg" onClick={onImport}><IconImport size={15} /> 导入歌单</GlassButton>
         </div>
       </div>
     </div>

@@ -64,7 +64,7 @@ export function NowPlaying() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
           role="dialog"
-          aria-label="Now playing"
+          aria-label="正在播放"
         >
           {/* ── depth stack ────────────────────────────────────────────────
               Room on the far plane, the music landscape floating in front of
@@ -89,7 +89,7 @@ export function NowPlaying() {
 
           <NowPlayingCard song={song.title} artist={song.artist} album={album.name} cover={album.coverUrl} />
 
-          <button className="icon-btn absolute right-5 top-5 z-40 h-11 w-11" onClick={() => toggleNowPlaying(false)} aria-label="Close full player">
+          <button className="icon-btn absolute right-5 top-5 z-40 h-11 w-11" onClick={() => toggleNowPlaying(false)} aria-label="关闭全屏播放器">
             <IconClose size={19} />
           </button>
 
@@ -98,7 +98,7 @@ export function NowPlaying() {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="mx-auto grid min-h-full w-full max-w-[1340px] place-items-center gap-12 px-8 py-14 md:grid-cols-[1.05fr_1fr] md:px-16"
+              className="mx-auto grid min-h-full w-full max-w-[1560px] place-items-center gap-10 px-8 py-14 md:grid-cols-[0.92fr_1.18fr] md:px-10"
             >
               <NpArtwork cover={album.coverUrl} name={album.name} palette={album.palette} anchorRef={artRef} />
               <NpInfo
@@ -125,23 +125,23 @@ export function NowPlaying() {
           exit={{ opacity: 0 }}
           style={{ background: 'radial-gradient(120% 100% at 50% 0%, var(--c-deep-1), var(--c-deep-0) 70%)' }}
           role="dialog"
-          aria-label="Nothing playing"
+          aria-label="暂无播放"
         >
-          <button className="icon-btn absolute right-5 top-5 h-11 w-11" onClick={() => toggleNowPlaying(false)} aria-label="Close full player">
+          <button className="icon-btn absolute right-5 top-5 h-11 w-11" onClick={() => toggleNowPlaying(false)} aria-label="关闭全屏播放器">
             <IconClose size={19} />
           </button>
           <div className="max-w-[420px] text-center">
             <span className="vinyl vinyl-slow vinyl-paused mx-auto block aspect-square w-[190px]" />
-            <h2 className="mh-display mt-7 text-[22px]">Nothing on the platter yet.</h2>
+            <h2 className="mh-display mt-7 text-[22px]">唱盘上还没有唱片。</h2>
             <p className="mt-2 text-[13px] leading-relaxed" style={{ color: 'var(--c-ink-dim)' }}>
-              Pick a record and this space fills with it — artwork, lyrics and the visualiser behind them.
+              挑一张唱片,这个空间就会被它填满 —— 封面、歌词,以及它们背后的可视化效果。
             </p>
             <div className="mt-5 flex flex-wrap justify-center gap-2.5">
               <button className="lg-btn lg-btn-primary px-4 py-2 text-[12.5px]" onClick={() => { toggleNowPlaying(false); useUiStore.getState().navigate('albums') }}>
-                Browse albums
+                浏览专辑
               </button>
               <button className="lg-btn px-4 py-2 text-[12.5px]" onClick={() => { toggleNowPlaying(false); useUiStore.getState().navigate('folders') }}>
-                Add music
+                添加音乐
               </button>
             </div>
           </div>
@@ -467,7 +467,7 @@ function NpArtwork({ cover, name, palette, anchorRef }: {
                 onClick={() => setRetracted(true)}
                 role="button"
                 tabIndex={-1}
-                aria-label="Retract vinyl"
+                aria-label="收回唱片"
               >
                 <VinylDisc spinning={isPlaying} labelUrl={cover} className="h-full w-full" />
                 {/* the printed screen over the record, so the disc reads as part
@@ -486,7 +486,7 @@ function NpArtwork({ cover, name, palette, anchorRef }: {
               transition={{ type: 'spring', stiffness: 160, damping: 20, mass: 0.9 }}
               onClick={() => setRetracted((v) => !v)}
               role="button"
-              aria-label={out ? 'Retract vinyl' : 'Slide out vinyl'}
+              aria-label={out ? '收回唱片' : '推出唱片'}
             >
               {/* album-coloured bloom that follows the music */}
               <div
@@ -501,7 +501,7 @@ function NpArtwork({ cover, name, palette, anchorRef }: {
               />
               <img
                 src={cover}
-                alt={`${name} artwork`}
+                alt={`${name} 封面`}
                 draggable={false}
                 className="w-full select-none rounded-2xl object-cover"
                 style={{
@@ -590,7 +590,7 @@ function Meters() {
 
   return (
     <div ref={ref} className="mt-5 flex items-end justify-center gap-5" aria-hidden="true">
-      {['BASS', 'MID', 'TREBLE', 'ENERGY'].map((label) => (
+      {['低音', '中音', '高音', '能量'].map((label) => (
         <div key={label} className="flex w-[70px] flex-col items-center gap-2">
           <span className="h-[4px] w-full overflow-hidden rounded-full" style={{ background: 'rgba(255,255,255,0.14)' }}>
             <span
@@ -616,8 +616,13 @@ function NpInfo({ songTitle, artist, albumName, albumId, lyricRef, onOpenQueue }
   const song = lib.getSong(usePlayerStore((s) => s.songId)!)
   const fav = song ? lib.favorites.songs.includes(song.id) : false
   const lyrics = useMemo(() => (song ? lib.getLyrics(song) : []), [song, lib])
-  const active = useLyricHighlight(lyrics)
+  const rawActive = useLyricHighlight(lyrics)
   const synced = isSynced(lyrics)
+  // An unsynced lyric has every line pinned to time 0, which would make the
+  // "last line <= current time" rule settle on the LAST line — so the view
+  // opened at the bottom and never moved. Only follow/highlight when the
+  // lyric actually carries a timeline.
+  const active = synced ? rawActive : -1
   const L = settings.settings.lyrics
   const { x: pxc, y: pyc } = useSpaceParallax()
   const layerX = useTransform(pxc, (v) => v * -15)
@@ -689,7 +694,7 @@ function NpInfo({ songTitle, artist, albumName, albumId, lyricRef, onOpenQueue }
             ['--lyr-hl' as any]: L.highlight,
             ['--lyr-op' as any]: L.opacity,
           }}
-          aria-label="Lyrics — scroll to read ahead"
+          aria-label="歌词 —— 滚动可提前查看"
         >
           {lyrics.length ? lyrics.map((line, i) => {
             // An unsynced lyric — prose pasted in, or a tag with no clock — has
@@ -703,7 +708,10 @@ function NpInfo({ songTitle, artist, albumName, albumId, lyricRef, onOpenQueue }
                 ref={follow.setLine(i)}
                 className={cn('lyric-line shrink-0', !synced ? 'unsynced' : isCurrent ? 'current' : i < active ? 'past' : 'near')}
                 style={{
-                  fontSize: Math.round(L.size * 2.3),
+                  // The setting is the ceiling, not a fixed size: a long line at
+                  // full size used to run wider than its column and slide under
+                  // the artwork, so the type now also tracks the viewport width.
+                  fontSize: `min(${Math.round(L.size * 2.3)}px, 3.35vw)`,
                   lineHeight: 1.34,
                   transitionDuration: `${620 / L.speed}ms`,
                   textAlign: 'inherit',
@@ -748,7 +756,7 @@ function NpInfo({ songTitle, artist, albumName, albumId, lyricRef, onOpenQueue }
               className="glass-soft absolute bottom-1 left-1/2 -translate-x-1/2 rounded-full px-3.5 py-1.5 text-[11.5px]"
               style={{ color: 'var(--c-ink-dim)' }}
             >
-              Follow lyrics
+              跟随歌词
             </motion.button>
           )}
         </AnimatePresence>
@@ -760,21 +768,21 @@ function NpInfo({ songTitle, artist, albumName, albumId, lyricRef, onOpenQueue }
           <ProgressBar />
           <div className="mt-5 flex items-center justify-center gap-3.5">
             <PlayModeButtons size={44} className="mr-1.5" />
-            <button className="icon-btn h-14 w-14" onClick={() => player.prev()} aria-label="Previous"><IconPrev size={25} /></button>
-            <button className="lg-btn lg-btn-primary grid h-20 w-20 place-items-center rounded-full" onClick={player.toggle} aria-label={player.isPlaying ? 'Pause' : 'Play'}>
+            <button className="icon-btn h-14 w-14" onClick={() => player.prev()} aria-label="上一首"><IconPrev size={25} /></button>
+            <button className="lg-btn lg-btn-primary grid h-20 w-20 place-items-center rounded-full" onClick={player.toggle} aria-label={player.isPlaying ? '暂停' : '播放'}>
               {player.isPlaying ? <IconPause size={32} /> : <IconPlay size={32} />}
             </button>
-            <button className="icon-btn h-14 w-14" onClick={() => player.next()} aria-label="Next"><IconNext size={25} /></button>
+            <button className="icon-btn h-14 w-14" onClick={() => player.next()} aria-label="下一首"><IconNext size={25} /></button>
           </div>
           <div className="mt-5 flex items-center justify-center gap-2.5">
-            <button className="icon-btn h-11 w-11" onClick={() => song && lib.toggleFavSong(song.id)} aria-label="Favorite" style={{ color: fav ? 'var(--c-accent-2)' : undefined }}>
+            <button className="icon-btn h-11 w-11" onClick={() => song && lib.toggleFavSong(song.id)} aria-label="收藏" style={{ color: fav ? 'var(--c-accent-2)' : undefined }}>
               {fav ? <IconHeartFill size={21} /> : <IconHeart size={21} />}
             </button>
-            <button className="icon-btn h-11 w-11" onClick={() => useUiStore.getState().navigate('album', { albumId })} aria-label="Go to album">
+            <button className="icon-btn h-11 w-11" onClick={() => useUiStore.getState().navigate('album', { albumId })} aria-label="前往专辑">
               <IconDisc size={21} />
             </button>
             <div className="flex items-center gap-1.5">
-              <button className="icon-btn h-11 w-11" onClick={player.toggleMute} aria-label="Mute">
+              <button className="icon-btn h-11 w-11" onClick={player.toggleMute} aria-label="静音">
                 {player.muted ? <IconVolumeMute size={19} /> : <IconVolume size={19} />}
               </button>
               <input
@@ -783,11 +791,11 @@ function NpInfo({ songTitle, artist, albumName, albumId, lyricRef, onOpenQueue }
                 onChange={(e) => player.setVolume(parseFloat(e.target.value))}
                 className="w-[118px]"
                 style={{ ['--fill' as any]: `${(player.muted ? 0 : settings.settings.volume) * 100}%` }}
-                aria-label="Volume"
+                aria-label="音量"
               />
             </div>
-            <button className="icon-btn h-11 w-11" onClick={onOpenQueue} aria-label="Open queue"><IconQueue size={19} /></button>
-            <button className="icon-btn h-11 w-11" onClick={() => useUiStore.getState().setRightTab('lyrics')} aria-label="Lyrics panel"><IconList size={19} /></button>
+            <button className="icon-btn h-11 w-11" onClick={onOpenQueue} aria-label="打开播放队列"><IconQueue size={19} /></button>
+            <button className="icon-btn h-11 w-11" onClick={() => useUiStore.getState().setRightTab('lyrics')} aria-label="歌词面板"><IconList size={19} /></button>
           </div>
           <Meters />
         </div>

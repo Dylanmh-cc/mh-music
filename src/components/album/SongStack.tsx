@@ -42,11 +42,11 @@ export function SongStack({ songs, albumName, limit = 3 }: {
   const meta = [
     typeof album === 'string' ? album : album?.name,
     fmtTime(front.duration),
-    front.playCount ? `${front.playCount} plays` : null,
+    front.playCount ? `播放过 ${front.playCount} 次` : null,
   ].filter(Boolean).join(' · ')
 
   return (
-    <div className="relative w-full max-w-[330px]" aria-label="Track list">
+    <div className="relative w-full max-w-[330px]" aria-label="曲目列表">
       <div className="relative" style={{ paddingBottom: 62 }}>
         {/* the cards behind: offset down-left, dimmed and stepped back */}
         {ordered.slice(1).map((song, i) => {
@@ -58,7 +58,7 @@ export function SongStack({ songs, albumName, limit = 3 }: {
               initial={{ opacity: 0, y: -16 }}
               animate={{ opacity: 1 - step * 0.4, y: 0 }}
               transition={{ type: 'spring', stiffness: 240, damping: 26 }}
-              onClick={() => player.playSong(song.id, ordered.map((s) => s.id), albumName ?? 'Now playing')}
+              onClick={() => player.playSong(song.id, ordered.map((s) => s.id), albumName ?? '正在播放')}
               className="absolute inset-x-0 top-0 overflow-hidden rounded-2xl border text-left"
               style={{
                 height: 132,
@@ -71,7 +71,7 @@ export function SongStack({ songs, albumName, limit = 3 }: {
                 backdropFilter: 'blur(18px)',
                 WebkitBackdropFilter: 'blur(18px)',
               }}
-              aria-label={`Play ${song.title}`}
+              aria-label={`播放 ${song.title}`}
             >
               <span className="flex h-full items-center gap-2.5 px-3">
                 <img src={song.coverUrl} alt="" draggable={false} className="h-9 w-9 shrink-0 rounded-lg object-cover" />
@@ -103,7 +103,7 @@ export function SongStack({ songs, albumName, limit = 3 }: {
             </div>
 
             <div className="flex min-w-0 flex-1 flex-col">
-              <span className="mh-overline" style={{ color: 'var(--c-ink-faint)' }}>Now playing</span>
+              <span className="mh-overline" style={{ color: 'var(--c-ink-faint)' }}>正在播放</span>
               <span className="mt-1 truncate text-[15px] font-semibold leading-tight">{front.title}</span>
               <span className="mt-0.5 truncate text-[12px]" style={{ color: 'var(--c-ink-dim)' }}>{front.artist}</span>
               <span className="mt-1.5 truncate text-[11px]" style={{ color: 'var(--c-ink-faint)' }}>{meta}</span>
@@ -111,17 +111,17 @@ export function SongStack({ songs, albumName, limit = 3 }: {
               <div className="mt-auto flex items-center gap-2 pt-3">
                 <button
                   className="lg-btn lg-btn-primary flex items-center gap-1.5 px-3 py-1.5 text-[12px]"
-                  onClick={() => (front.id === currentId ? player.toggle() : player.playSong(front.id, ordered.map((s) => s.id), 'Now playing'))}
-                  aria-label={playing ? 'Pause' : 'Play'}
+                  onClick={() => (front.id === currentId ? player.toggle() : player.playSong(front.id, ordered.map((s) => s.id), '正在播放'))}
+                  aria-label={playing ? '暂停' : '播放'}
                 >
                   {playing ? <IconPause size={13} /> : <IconPlay size={13} />}
-                  {playing ? 'Pause' : 'Play'}
+                  {playing ? '暂停' : '播放'}
                 </button>
                 <button
                   className="lg-btn flex items-center gap-1.5 px-3 py-1.5 text-[12px]"
                   onClick={() => { navigate('album', { albumId: front.albumId }); pushPath(`/album/${front.albumId}`) }}
                 >
-                  Details
+                  专辑详情
                 </button>
               </div>
             </div>
@@ -136,7 +136,7 @@ export function SongStack({ songs, albumName, limit = 3 }: {
             style={{ color: 'var(--c-ink-dim)' }}
             onClick={() => { navigate('songs'); pushPath('/songs') }}
           >
-            {songs.length} in this record · open the full list
+            这张唱片共 {songs.length} 首 · 查看完整列表
           </button>
         </div>
       </div>

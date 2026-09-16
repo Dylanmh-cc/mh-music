@@ -29,7 +29,7 @@ export function RecentView() {
   }, [lib.history])
 
   if (!entries.length) {
-    return <EmptyState icon={<IconClock size={28} />} title="Nothing played yet." hint="Your listening history will gather here like rings on a record." />
+    return <EmptyState icon={<IconClock size={28} />} title="还没有播放记录。" hint="播放历史会像唱片的纹路一样在这里累积。" />
   }
 
   const contextIds = entries.map((e) => e.songId)
@@ -37,25 +37,25 @@ export function RecentView() {
   return (
     <div className="mx-auto max-w-[1280px]">
       <SectionTitle
-        title="Recently Played"
-        hint={`${entries.length} tracks in rotation`}
+        title="最近播放"
+        hint={`${entries.length} 首在循环中`}
         action={
           <GlassButton onClick={() => confirmClearHistory()}>
-            <span className="flex items-center gap-2"><IconTrash size={13} /> Clear</span>
+            <span className="flex items-center gap-2"><IconTrash size={13} /> 清空</span>
           </GlassButton>
         }
       />
       <Stage3D
         items={entries}
         keyOf={(e) => e.songId}
-        label="Recently played stage"
+        label="最近播放舞台"
         thumbnailOf={(e) => lib.getSong(e.songId)?.coverUrl}
         followKey={player.songId}
         onActivate={(e) => {
           const s = lib.getSong(e.songId)
           if (!s) return
           if (player.songId === s.id) player.toggle()
-          else player.playSong(s.id, contextIds, 'Recently Played')
+          else player.playSong(s.id, contextIds, '最近播放')
         }}
         renderCard={(e) => {
           const song = lib.getSong(e.songId)
@@ -64,7 +64,7 @@ export function RecentView() {
           const isCurrent = player.songId === song.id
           const isPlaying = isCurrent && player.isPlaying
           const fav = lib.favorites.songs.includes(song.id)
-          const play = () => (isCurrent ? player.toggle() : player.playSong(song.id, contextIds, 'Recently Played'))
+          const play = () => (isCurrent ? player.toggle() : player.playSong(song.id, contextIds, '最近播放'))
           return (
             <div className="relative">
               <div
@@ -72,7 +72,7 @@ export function RecentView() {
                 style={{ aspectRatio: '1 / 1' }}
                 onClick={play}
                 role="button"
-                aria-label={`${isPlaying ? 'Pause' : 'Play'} ${song.title}`}
+                aria-label={`${isPlaying ? '暂停' : '播放'} ${song.title}`}
               >
                 <img src={song.coverUrl} alt="" loading="lazy" draggable={false} className="h-full w-full object-cover" />
                 <span className="pointer-events-none absolute inset-0 rounded-[16px]" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.09)' }} />
@@ -82,7 +82,7 @@ export function RecentView() {
                 {isCurrent && (
                   <span className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded-full bg-black/55 px-2.5 py-1 backdrop-blur-md">
                     <span className={cn('eq-bars', !isPlaying && 'eq-paused')} aria-hidden="true"><i /><i /><i /></span>
-                    <span className="track-stencil text-[9px] text-white/85">{isPlaying ? 'PLAYING' : 'PAUSED'}</span>
+                    <span className="track-stencil text-[9px] text-white/85">{isPlaying ? '播放中' : 'PAUSED'}</span>
                   </span>
                 )}
               </div>
@@ -93,14 +93,14 @@ export function RecentView() {
               </div>
 
               <div className="flex items-center gap-1.5 px-1.5 pb-1 pt-2.5">
-                <span onClick={play} className="lg-btn lg-btn-primary grid h-10 w-10 cursor-pointer place-items-center" role="button" aria-label={isPlaying ? 'Pause' : 'Play'}>
+                <span onClick={play} className="lg-btn lg-btn-primary grid h-10 w-10 cursor-pointer place-items-center" role="button" aria-label={isPlaying ? '暂停' : '播放'}>
                   {isPlaying ? <IconPause size={16} /> : <IconPlay size={16} />}
                 </span>
                 <button
                   className={cn('icon-btn h-9 w-9', fav && 'active')}
                   style={{ color: fav ? 'var(--c-accent-2)' : undefined }}
                   onClick={(ev) => { ev.stopPropagation(); lib.toggleFavSong(song.id) }}
-                  aria-label={fav ? 'Remove from favorites' : 'Add to favorites'}
+                  aria-label={fav ? '取消收藏' : '加入收藏'}
                 >
                   {fav ? <IconHeartFill size={16} /> : <IconHeart size={16} />}
                 </button>
@@ -111,7 +111,7 @@ export function RecentView() {
                     const r = (ev.currentTarget as HTMLElement).getBoundingClientRect()
                     ui.openCtx(r.left - 210, r.bottom + 6, songMenuItems(song))
                   }}
-                  aria-label={`More options for ${song.title}`}
+                  aria-label={`${song.title} 的更多选项`}
                 >
                   <IconMore size={15} />
                 </button>
@@ -128,11 +128,11 @@ export function RecentView() {
 function when(ts: number): string {
   const d = Date.now() - ts
   const min = Math.floor(d / 60000)
-  if (min < 1) return 'just now'
-  if (min < 60) return `${min}m ago`
+  if (min < 1) return '刚刚'
+  if (min < 60) return `${min} 分钟前`
   const h = Math.floor(min / 60)
-  if (h < 24) return `${h}h ago`
+  if (h < 24) return `${h} 小时前`
   const day = Math.floor(h / 24)
-  if (day < 7) return `${day}d ago`
+  if (day < 7) return `${day} 天前`
   return new Date(ts).toLocaleDateString()
 }

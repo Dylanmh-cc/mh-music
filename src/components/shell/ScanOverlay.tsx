@@ -21,7 +21,7 @@ export function ScanOverlay() {
           <div className="flex items-center gap-3">
             <div className="vinyl h-10 w-10 vinyl-spin shrink-0"><div className="vinyl-label" /></div>
             <div className="min-w-0">
-              <div className="text-[13px] font-medium">Scanning your music library…</div>
+              <div className="text-[13px] font-medium">正在扫描你的音乐库…</div>
               <div className="truncate text-[11px]" style={{ color: 'var(--c-ink-dim)' }}>
                 {scan.folderName}{scan.current ? ` · ${scan.current}` : ''}
               </div>
@@ -39,7 +39,7 @@ export function ScanOverlay() {
             />
           </div>
           <div className="mt-2 text-[10px]" style={{ color: 'var(--c-ink-faint)' }}>
-            Reading tags · artwork · duration{pct > 0 ? ` · ${fmtTime(pct * 40)} est.` : ''}
+            正在读取标签 · 封面 · 时长{pct > 0 ? ` · 预计 ${fmtTime(pct * 40)}` : ''}
           </div>
         </motion.div>
       )}

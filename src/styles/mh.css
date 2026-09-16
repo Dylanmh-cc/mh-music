@@ -318,6 +318,8 @@ html { font-family: var(--mh-font); }
 /* ---- lyrics: big, luminous, one line clearly winning ---- */
 .np-scene .lyric-line {
   text-shadow: 0 3px 30px rgba(0, 0, 0, 0.72), 0 1px 3px rgba(0, 0, 0, 0.5);
+  /* one sentence = one line, never wrap onto two rows */
+  white-space: nowrap;
 }
 .np-scene .lyric-line.current {
   color: #fff;

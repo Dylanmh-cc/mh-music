@@ -57,7 +57,7 @@ export const VinylDisc = memo(function VinylDisc({
       className={cn('vinyl vinyl-inertia', className)}
       data-spinning={spinning ? 'true' : 'false'}
       role="img"
-      aria-label="Vinyl record"
+      aria-label="黑胶唱片"
     >
       {labelUrl ? (
         <div className="absolute inset-[34%] overflow-hidden rounded-full" style={{ boxShadow: 'inset 0 0 0 2px rgba(0,0,0,0.3)' }}>

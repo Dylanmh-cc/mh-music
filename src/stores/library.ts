@@ -3,6 +3,7 @@ import type { Album, Artist, HistoryEntry, LyricLine, MusicFolder, Playlist, Sca
 import { loadUser, saveUser } from '../services/storage'
 import { buildDemoLibrary, demoLyricsFor } from '../data/demo'
 import { lyricsToLines } from '../lib/lrc'
+import { fetchOnlineLyrics } from '../lib/onlineLyrics'
 import {
   scanFSDirectory, rescanFSDirectory, scanFileList,
   albumKey, albumIdFor, artistIdFor,
@@ -91,6 +92,24 @@ function persist(state: LibraryState) {
     }
     saveUser('library', data)
   }, 500)
+}
+
+// Serialised background queue: look up words for a track that imported without
+// lyrics. Runs after the UI has already settled; never blocks import.
+let lyricQueue: Promise<void> = Promise.resolve()
+function queueLyricFetch(song: Song) {
+  if (song.lrc?.length) return
+  lyricQueue = lyricQueue.then(async () => {
+    if (useLibraryStore.getState().songs.find((s) => s.id === song.id)?.lrc?.length) return
+    const text = await fetchOnlineLyrics(song.artist, song.title, song.albumArtist)
+    if (!text) return
+    const lrc = lyricsToLines(text)
+    if (!lrc?.length) return
+    useLibraryStore.setState((st) => ({
+      songs: st.songs.map((x) => (x.id === song.id ? { ...x, lrc } : x)),
+    }))
+    persist(useLibraryStore.getState())
+  }).catch(() => {})
 }
 
 /** Resolve a relative path inside a directory handle → File */
@@ -230,7 +249,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
 
   addFolderFS: async () => {
     if (!supportsFS) {
-      toast('info', 'Your browser can’t open folders directly — pick files instead.')
+      toast('info', '你的浏览器无法直接打开文件夹 —— 请改为选择文件。')
       return
     }
     try {
@@ -240,9 +259,9 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
         onProgress: (done, total, current) => set({ scan: { active: true, done, total, current, folderName: handle.name } }),
       })
       get().__merge(result.songs, result.albums, result.artists, result.folder)
-      toast('success', `Added “${result.folder.name}” — ${result.songs.length} tracks.`)
+      toast('success', `已添加「${result.folder.name}」—— ${result.songs.length} 首曲目。`)
     } catch (e: any) {
-      if (e?.name !== 'AbortError') toast('error', 'Folder access was denied.')
+      if (e?.name !== 'AbortError') toast('error', '文件夹访问被拒绝。')
     } finally {
       set({ scan: null })
     }
@@ -251,7 +270,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   addFolderUpload: async (files) => {
     const arr = Array.from(files)
     if (!arr.length) return
-    const dirName = ((arr[0] as any).webkitRelativePath?.split('/')[0] as string | undefined)?.trim() || 'Uploaded files'
+    const dirName = ((arr[0] as any).webkitRelativePath?.split('/')[0] as string | undefined)?.trim() || '已上传的文件'
     set({ scan: { active: true, done: 0, total: arr.length, current: '', folderName: dirName } })
     try {
       const result = await scanFileList(arr, dirName, 'upload')
@@ -263,10 +282,10 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
         try { await putFileBlob(b.songId, b.file); stored++ } catch { /* quota / private mode */ }
       }
       toast('success', stored === blobs.length && blobs.length
-        ? `Added ${result.songs.length} tracks from “${dirName}” — kept for offline after reload.`
-        : `Added ${result.songs.length} tracks from “${dirName}”.`)
+        ? `已从「${dirName}」添加 ${result.songs.length} 首曲目 —— 已保存,刷新后仍可离线播放。`
+        : `已从「${dirName}」添加 ${result.songs.length} 首曲目。`)
     } catch {
-      toast('error', 'Could not read those files.')
+      toast('error', '无法读取这些文件。')
     } finally {
       set({ scan: null })
     }
@@ -277,18 +296,18 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     if (!folder) return
     try {
       const handle = await idbGet<FileSystemDirectoryHandle>(folder.id)
-      if (!handle) { toast('error', 'Folder handle lost — please add the folder again.'); return }
+      if (!handle) { toast('error', '文件夹句柄已失效 —— 请重新添加该文件夹。'); return }
       let perm = await (handle as any).queryPermission?.({ mode: 'read' })
       if (perm !== 'granted') perm = await (handle as any).requestPermission?.({ mode: 'read' })
-      if (perm !== 'granted') { toast('error', 'Permission denied for this folder.'); return }
+      if (perm !== 'granted') { toast('error', '该文件夹权限被拒绝。'); return }
       set({ scan: { active: true, done: 0, total: 0, current: '', folderName: folder.name } })
       const result = await rescanFSDirectory(handle, folder, {
         onProgress: (done, total, current) => set({ scan: { active: true, done, total, current, folderName: folder.name } }),
       })
       get().__merge(result.songs, result.albums, result.artists, result.folder)
-      toast('success', `Rescanned “${folder.name}” — ${result.songs.length} tracks.`)
+      toast('success', `已重新扫描「${folder.name}」—— ${result.songs.length} 首曲目。`)
     } catch {
-      toast('error', 'Could not read this folder.')
+      toast('error', '无法读取该文件夹。')
     } finally {
       set({ scan: null })
     }
@@ -304,7 +323,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     // drop the persisted directory handle too, so the folder is really gone
     idbDel(folderId).catch(() => { /* ignore */ })
     afterPurge(removedIds)
-    toast('info', 'Folder removed from your library.')
+    toast('info', '文件夹已从音乐库中移除。')
   },
 
   toggleFavSong: (id) => {
@@ -321,11 +340,11 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   },
 
   createPlaylist: (name, songIds = [], coverUrl) => {
-    if (!name.trim()) { toast('error', 'Give your playlist a name.'); return null }
+    if (!name.trim()) { toast('error', '请给歌单起个名字。'); return null }
     const pl: Playlist = { id: uid('pl'), name: name.trim(), songIds: [...new Set(songIds)], createdAt: Date.now(), coverUrl }
     set((s) => ({ playlists: [pl, ...s.playlists] }))
     persist(get())
-    toast('success', `Playlist “${pl.name}” created.`)
+    toast('success', `歌单「${pl.name}」已创建。`)
     return pl
   },
   setPlaylistCover: (id, coverUrl) => {
@@ -339,7 +358,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   deletePlaylist: (id) => {
     set((s) => ({ playlists: s.playlists.filter((p) => p.id !== id) }))
     persist(get())
-    toast('info', 'Playlist deleted.')
+    toast('info', '歌单已删除。')
   },
   addToPlaylist: (playlistId, songIds) => {
     set((s) => ({
@@ -349,7 +368,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     }))
     persist(get())
     const pl = get().playlists.find((p) => p.id === playlistId)
-    toast('success', `Added to “${pl?.name ?? 'playlist'}”.`)
+    toast('success', `已添加到「${pl?.name ?? '歌单'}」。`)
   },
   removeFromPlaylist: (playlistId, songId) => {
     set((s) => ({ playlists: s.playlists.map((p) => (p.id === playlistId ? { ...p, songIds: p.songIds.filter((id) => id !== songId) } : p)) }))
@@ -362,10 +381,10 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
 
   importPlaylistFile: async (file, name) => {
     const entries = await parsePlaylistFile(file)
-    if (!entries.length) throw new Error('No tracks found in this file.')
+    if (!entries.length) throw new Error('这个文件里没有找到曲目。')
     const { matched, unmatched } = matchEntries(entries, get().songs)
     if (matched.length) get().createPlaylist(name, matched)
-    else toast('info', 'No matching songs found in your library.')
+    else toast('info', '音乐库里没有匹配的歌曲。')
     return { matched: matched.length, unmatched }
   },
 
@@ -375,7 +394,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     if (!song) return
     set(purgeSongs(state, new Set([songId])))
     afterPurge(new Set([songId]))
-    if (!silent) toast('info', `Removed “${song.title}” from your library.`)
+    if (!silent) toast('info', `已把「${song.title}」从音乐库中移除。`)
   },
 
   /** Delete an album and every track filed under it. */
@@ -388,12 +407,12 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
       // an album with no tracks left — just drop the shelf label
       set({ albums: state.albums.filter((a) => a.id !== albumId) })
       persist(get())
-      toast('info', `Deleted “${album.name}”.`)
+      toast('info', `已删除「${album.name}」。`)
       return
     }
     set(purgeSongs(state, ids))
     afterPurge(ids)
-    toast('success', `Deleted “${album.name}” and ${ids.size} track${ids.size !== 1 ? 's' : ''}.`)
+    toast('success', `已删除「${album.name}」及 ${ids.size} 首曲目。`)
   },
 
   /** True when this track is backed by a real file inside a linked folder. */
@@ -412,7 +431,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   clearDemo: () => {
     const state = get()
     const ids = new Set(state.songs.filter((s) => s.source === 'demo').map((s) => s.id))
-    if (!ids.size) { toast('info', 'There is no demo music to clear.'); return }
+    if (!ids.size) { toast('info', '没有可以清除的示例音乐。'); return }
     const next = purgeSongs(state, ids)
     // purge keeps empty albums when they came from the demo set — drop them
     const albums = next.albums.filter((a) => a.source !== 'demo')
@@ -422,7 +441,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
       .filter((a) => a.albumIds.length)
     set({ ...next, albums, artists, demoCleared: true })
     afterPurge(ids)
-    toast('success', `Cleared ${ids.size} demo track${ids.size !== 1 ? 's' : ''}. Your own music was kept.`)
+    toast('success', `已清除 ${ids.size} 首示例曲目。你自己添加的音乐都保留了。`)
   },
 
   /**
@@ -432,23 +451,23 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   deleteLocalFile: async (songId) => {
     const song = get().songs.find((s) => s.id === songId)
     if (!song || song.source !== 'fs' || !song.folderId || !song.path) {
-      toast('error', 'This track has no local file to delete.')
+      toast('error', '这首曲目没有可删除的本地文件。')
       return
     }
     try {
       const root = await idbGet<FileSystemDirectoryHandle>(song.folderId)
-      if (!root) { toast('error', 'Folder handle lost — rescan the folder first.'); return }
+      if (!root) { toast('error', '文件夹句柄已失效 —— 请先重新扫描该文件夹。'); return }
       let perm = await (root as any).queryPermission?.({ mode: 'readwrite' })
       if (perm !== 'granted') perm = await (root as any).requestPermission?.({ mode: 'readwrite' })
-      if (perm !== 'granted') { toast('error', 'Folder permission denied.'); return }
+      if (perm !== 'granted') { toast('error', '文件夹权限被拒绝。'); return }
       const parts = song.path.split('/').filter(Boolean)
       let dir = root
       for (let i = 0; i < parts.length - 1; i++) dir = await dir.getDirectoryHandle(parts[i])
       await (dir as any).removeEntry(parts[parts.length - 1])
       get().removeSong(songId, true)
-      toast('success', `Deleted the file for “${song.title}”.`)
+      toast('success', `已删除「${song.title}」对应的文件。`)
     } catch {
-      toast('error', 'Could not delete the local file.')
+      toast('error', '无法删除该本地文件。')
     }
   },
 
@@ -488,13 +507,13 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     if (!lrc) {
       // say which failure it was: an empty file reads very differently from an
       // unsupported one, and silence here is what made this look broken
-      if (raw) toast('error', 'Could not read any lyric lines from that text.')
-      else if (text !== undefined) toast('error', 'That file had no text in it.')
+      if (raw) toast('error', '没能从这段文本里读出任何歌词行。')
+      else if (text !== undefined) toast('error', '那个文件里没有任何文本内容。')
     }
     set((s) => ({ songs: s.songs.map((x) => (x.id === songId ? { ...x, lrc } : x)) }))
     persist(get())
-    if (lrc) toast('success', `Lyrics saved — ${lrc.length} line${lrc.length === 1 ? '' : 's'}.`)
-    else if (!raw && text === undefined) toast('info', 'Lyrics cleared.')
+    if (lrc) toast('success', `歌词已保存 —— 共 ${lrc.length} 行。`)
+    else if (!raw && text === undefined) toast('info', '歌词已清除。')
   },
   getLyrics: (song) => {
     if (song.lrc?.length) return song.lrc
@@ -535,6 +554,8 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     const folders = [...s.folders.filter((f) => f.id !== folder.id), folder]
     set({ songs, albums: liveAlbums, artists, folders })
     persist(get())
+    // any track that shipped without words gets looked up online, in the background
+    for (const song of newSongs) queueLyricFetch(song)
   },
 }))
 

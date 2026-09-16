@@ -23,20 +23,20 @@ export function QueuePanel({ onClose }: { onClose: () => void }) {
       exit={{ x: 34, opacity: 0, filter: 'blur(8px)' }}
       transition={{ type: 'spring', stiffness: 260, damping: 28 }}
       className="hidden md:block"
-      aria-label="Play queue"
+      aria-label="播放队列"
     >
       <GlassPanel tier="deep" className="mh-queue-panel !static !h-full !w-[368px]">
         <header className="flex items-center gap-2 px-5 pb-3 pt-5">
-          <h2 className="mh-display text-[15px]">Queue</h2>
+          <h2 className="mh-display text-[15px]">播放队列</h2>
           <span className="mh-mono text-[11px]" style={{ color: 'var(--c-ink-faint)' }}>{queue.length}</span>
-          <IconButton label="Close the queue" className="ml-auto h-9 w-9" onClick={onClose}><IconClose size={17} /></IconButton>
+          <IconButton label="关闭播放队列" className="ml-auto h-9 w-9" onClick={onClose}><IconClose size={17} /></IconButton>
         </header>
         <div className="mh-divider mx-5" />
 
         <div className="mh-scroll flex min-h-0 flex-1 flex-col px-3 py-3">
           {current ? (
             <>
-              <div className="mh-overline px-2 pb-2" style={{ color: 'var(--c-ink-faint)' }}>Now playing</div>
+              <div className="mh-overline px-2 pb-2" style={{ color: 'var(--c-ink-faint)' }}>正在播放</div>
               <div className="mh-glass-soft mb-4 flex items-center gap-3 rounded-2xl p-3">
                 <img src={current.coverUrl} alt="" className="h-12 w-12 rounded-xl object-cover" />
                 <div className="min-w-0">
@@ -46,7 +46,7 @@ export function QueuePanel({ onClose }: { onClose: () => void }) {
               </div>
             </>
           ) : (
-            <p className="px-2 pb-3 text-[12.5px]" style={{ color: 'var(--c-ink-faint)' }}>Nothing is playing yet.</p>
+            <p className="px-2 pb-3 text-[12.5px]" style={{ color: 'var(--c-ink-faint)' }}>暂未播放任何曲目。</p>
           )}
 
           <UpNextHeader />
@@ -56,7 +56,7 @@ export function QueuePanel({ onClose }: { onClose: () => void }) {
         {queue.length > 0 && (
           <footer className="px-4 pb-4">
             <GlassButton className="w-full" onClick={() => usePlayerStore.getState().loadAndPlay(queue[0].songId)}>
-              <IconPlay size={14} /> Play the queue
+              <IconPlay size={14} /> 播放整个队列
             </GlassButton>
           </footer>
         )}

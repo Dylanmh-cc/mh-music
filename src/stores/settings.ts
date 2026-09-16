@@ -165,39 +165,39 @@ export function isVisualizerMode(v: unknown): v is VisualizerMode {
 
 /** The eight visualiser modes, in the order they appear in the pickers. */
 export const VISUALIZER_MODE_LABELS: ReadonlyArray<{ id: VisualizerMode; label: string; hint: string }> = [
-  { id: 'terrain', label: '3D Terrain', hint: 'A block landscape rising out of the track, ringed by its own light' },
-  { id: 'waveform', label: 'Classic Waveform', hint: 'The wave itself, drawn wide across the room' },
-  { id: 'circular', label: 'Circular Spectrum', hint: 'The spectrum wrapped into a ring around the record' },
-  { id: 'particles', label: 'Particles', hint: 'A drifting field that pushes outward on the bass' },
-  { id: 'vinylWave', label: 'Vinyl Wave', hint: 'Ripples leaving the groove on every beat' },
-  { id: 'galaxy', label: 'Galaxy', hint: 'Spiral arms turning slowly through the space' },
-  { id: 'aurora', label: 'Aurora', hint: 'Bands of light drifting across the upper room' },
-  { id: 'minimal', label: 'Minimal', hint: 'One hairline and a beat — nothing else moves' },
+  { id: 'terrain', label: '3D 地形', hint: '从曲目中升起的方块地貌,周围环绕着它自己的光' },
+  { id: 'waveform', label: '经典波形', hint: '把声波本身横跨整个房间画出来' },
+  { id: 'circular', label: '环形频谱', hint: '把频谱绕成唱片周围的一圈' },
+  { id: 'particles', label: '粒子', hint: '低频响起时向外扩张的漂浮粒子场' },
+  { id: 'vinylWave', label: '黑胶波纹', hint: '每一拍都有涟漪离开音轨' },
+  { id: 'galaxy', label: '星系', hint: '缓慢转动的旋臂穿过整个空间' },
+  { id: 'aurora', label: '极光', hint: '光带在房间上方漂移' },
+  { id: 'minimal', label: '极简', hint: '一条细线和一个鼓点 —— 再无其他动静' },
 ]
 
 /** Performance mode: how much of the visual budget to spend. */
 export const PERF_MODE_LABELS: ReadonlyArray<{ id: PerfMode; label: string; hint: string }> = [
-  { id: 'high', label: 'High Quality', hint: 'Full particle counts, full glass blur, 3D at native resolution' },
-  { id: 'balanced', label: 'Balanced', hint: 'Adapts to the device: good looking, still light' },
-  { id: 'performance', label: 'Performance', hint: 'Fewer particles, less blur — audio always comes first' },
+  { id: 'high', label: '高质量', hint: '完整粒子数量、完整玻璃模糊、3D 按原生分辨率渲染' },
+  { id: 'balanced', label: '均衡', hint: '随设备自适应:好看,同时依然轻快' },
+  { id: 'performance', label: '性能优先', hint: '更少粒子、更少模糊 —— 音频永远第一位' },
 ]
 
 /** Landscape colour source, for pickers. */
 export const PARTICLE_COLOR_LABELS: ReadonlyArray<{ id: ParticleColor; label: string }> = [
-  { id: 'random', label: 'Random' },
-  { id: 'album', label: 'Album Cover' },
+  { id: 'random', label: '随机' },
+  { id: 'album', label: '专辑封面' },
 ]
 
 /** Player background treatments, for pickers — the eight from the spec. */
 export const BG_MODE_LABELS: ReadonlyArray<{ id: BgMode; label: string; hint: string }> = [
-  { id: 'deep', label: 'Standard', hint: 'A dark room, lit by the landscape' },
-  { id: 'glass', label: 'Glass', hint: 'Liquid glass space with the room refracted through it' },
-  { id: 'gradient', label: 'Gradient', hint: 'A slow gradient built from the album palette' },
-  { id: 'starry', label: 'Starry Sky', hint: 'A drifting starfield behind the music' },
-  { id: 'sunset', label: 'Sunset', hint: 'Sunset band under a starry sky' },
-  { id: 'spatial', label: '3D Space', hint: 'The full 3D room with its own depth' },
-  { id: 'vinyl', label: 'Vinyl Room', hint: 'A listening room built around the record' },
-  { id: 'dynamic', label: 'Dynamic', hint: 'Everything reacts to the track in real time' },
+  { id: 'deep', label: '标准', hint: '一间暗房,由地貌照亮' },
+  { id: 'glass', label: '玻璃', hint: '液态玻璃空间,房间被折射其中' },
+  { id: 'gradient', label: '渐变', hint: '由专辑色板生成的缓慢渐变' },
+  { id: 'starry', label: '星空', hint: '音乐背后漂移的星野' },
+  { id: 'sunset', label: '日落', hint: '星空之下的日落光带' },
+  { id: 'spatial', label: '3D 空间', hint: '完整的 3D 房间,自带纵深' },
+  { id: 'vinyl', label: '黑胶房', hint: '围绕唱片搭建的聆听室' },
+  { id: 'dynamic', label: '动态', hint: '一切都实时回应曲目' },
 ]
 
 export type ThemeModeT = ThemeMode

@@ -19,7 +19,7 @@ export function RightPanel() {
   return (
     <aside className="flex w-[344px] shrink-0 flex-col px-4 pb-32 pt-1" aria-label="Now playing panel">
       <div className="glass-soft mb-6 flex rounded-full p-1" role="tablist" aria-label="Panel tabs">
-        {([['now', 'Now', IconDisc], ['lyrics', 'Lyrics', IconNote], ['queue', 'Queue', IconQueue]] as const).map(([id, label, Icon]) => (
+        {([['now', 'Now', IconDisc], ['lyrics', '歌词', IconNote], ['queue', '播放队列', IconQueue]] as const).map(([id, label, Icon]) => (
           <button
             key={id}
             role="tab"
@@ -77,9 +77,9 @@ function NowTab() {
               <IconDisc size={24} />
             </span>
           </motion.div>
-          <p className="mt-6 text-[14px] font-medium">Nothing on the platter</p>
+          <p className="mt-6 text-[14px] font-medium">唱机上没有唱片</p>
           <p className="mt-2 text-[12.5px] leading-relaxed" style={{ color: 'var(--c-ink-faint)' }}>
-            Drop the needle on any album and it will appear here — artwork, lyrics and controls.
+            在任意专辑上放下唱针,它就会出现在这里 —— 封面、歌词与控件。
           </p>
           <div className="mt-5 flex flex-col gap-2">
             <button className="lg-btn lg-btn-primary px-4 py-2.5 text-[13px] font-medium" onClick={() => useUiStore.getState().navigate('albums')}>
@@ -96,7 +96,7 @@ function NowTab() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col items-center">
-      <button onClick={() => toggleNowPlaying(true)} className="group w-full" aria-label="Open full player">
+      <button onClick={() => toggleNowPlaying(true)} className="group w-full" aria-label="打开全屏播放器">
         <CoverArt3D albumId={album.id} url={album.coverUrl} name={album.name} size="panel" />
       </button>
       <div className="mt-5 w-full text-center">
@@ -112,14 +112,14 @@ function NowTab() {
           className="icon-btn h-10 w-10"
           style={{ color: favAlbum ? 'var(--c-accent-2)' : undefined }}
           onClick={() => toggleFavAlbum(album.id)}
-          aria-label={favAlbum ? 'Remove album from favorites' : 'Add album to favorites'}
+          aria-label={favAlbum ? '取消收藏这张专辑' : '收藏这张专辑'}
         >
           {favAlbum ? <IconHeartFill size={18} /> : <IconHeart size={18} />}
         </button>
-        <button className="icon-btn h-10 w-10" onClick={() => navigate('album', { albumId: album.id })} aria-label="Go to album">
+        <button className="icon-btn h-10 w-10" onClick={() => navigate('album', { albumId: album.id })} aria-label="前往专辑">
           <IconAlbum size={18} />
         </button>
-        <button className="icon-btn h-10 w-10" onClick={() => toggleNowPlaying(true)} aria-label="Expand player">
+        <button className="icon-btn h-10 w-10" onClick={() => toggleNowPlaying(true)} aria-label="展开播放器">
           <IconExpand size={18} />
         </button>
       </div>
@@ -202,52 +202,52 @@ function LyricsTuner() {
         className="glass-soft flex w-full items-center gap-2 rounded-full px-3.5 py-2.5 text-[12.5px]"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        aria-label="Lyrics settings"
+        aria-label="歌词设置"
       >
         <IconSettings size={14} />
-        <span>Lyrics settings</span>
+        <span>歌词设置</span>
         <IconChevronDown size={13} className={cn('ml-auto transition-transform duration-300', open && 'rotate-180')} style={{ color: 'var(--c-ink-faint)' }} />
       </button>
 
       {open && (
         <div className="glass-soft mt-2 space-y-3.5 rounded-2xl p-3.5">
-          {row('Font size', (
+          {row('字号', (
             <input
               type="range" min={13} max={34} step={1} value={L.size}
               onChange={(e) => set('size', parseInt(e.target.value, 10))}
               style={{ ['--fill' as any]: `${((L.size - 13) / 21) * 100}%` }}
-              aria-label="Lyrics font size"
+              aria-label="歌词字号"
             />
           ), `${L.size}px`)}
 
-          {row('Opacity', (
+          {row('不透明度', (
             <input
               type="range" min={0.3} max={1} step={0.05} value={L.opacity}
               onChange={(e) => set('opacity', parseFloat(e.target.value))}
               style={{ ['--fill' as any]: `${((L.opacity - 0.3) / 0.7) * 100}%` }}
-              aria-label="Lyrics opacity"
+              aria-label="歌词不透明度"
             />
           ), `${Math.round(L.opacity * 100)}%`)}
 
-          {row('Line count', seg(
+          {row('显示行数', seg(
             [1, 2, 3, 4, 5].map((n) => ({ v: String(n), label: String(n) })),
             String(L.lines),
             (v) => set('lines', parseInt(v, 10)),
-            'Lyrics line count',
+            '歌词行数',
           ))}
 
-          {row('Position', seg(
-            [{ v: 'floating', label: 'Top' }, { v: 'centered', label: 'Center' }, { v: 'bottom', label: 'Bottom' }],
+          {row('位置', seg(
+            [{ v: 'floating', label: '顶部' }, { v: 'centered', label: '居中' }, { v: 'bottom', label: '底部' }],
             L.mode,
             (v) => set('mode', v as LyricsSettings['mode']),
-            'Lyrics position',
+            '歌词位置',
           ))}
 
-          {row('Animation', (
+          {row('动画', (
             <button
               role="switch"
               aria-checked={L.animate}
-              aria-label="Lyrics animation"
+              aria-label="歌词动画"
               onClick={() => set('animate', !L.animate)}
               className="relative h-6 w-11 rounded-full transition-colors duration-300"
               style={{ background: L.animate ? 'var(--c-accent)' : 'rgba(255,255,255,0.14)' }}
@@ -257,14 +257,14 @@ function LyricsTuner() {
                 style={{ left: L.animate ? 22 : 2 }}
               />
             </button>
-          ), L.animate ? 'On' : 'Off')}
+          ), L.animate ? '开' : '关')}
 
           <button
             className="w-full rounded-full py-2 text-[12px] transition hover:bg-white/8"
             style={{ color: 'var(--c-ink-dim)' }}
             onClick={() => (Object.keys(DEFAULT_LYRICS) as Array<keyof LyricsSettings>).forEach((k) => set(k, DEFAULT_LYRICS[k]))}
           >
-            Reset lyrics
+            重置歌词
           </button>
         </div>
       )}

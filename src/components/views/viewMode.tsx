@@ -14,8 +14,8 @@ export function ViewModeToggle({ page }: { page: ViewPage }) {
   const setViewMode = useSettingsStore((s) => s.setViewMode)
 
   return (
-    <div className="glass-soft flex rounded-full p-1" role="tablist" aria-label={`${page} view mode`}>
-      {([['stage', '3D Stage', IconDisc], ['list', 'List', IconList]] as const).map(([id, label, Icon]) => (
+    <div className="glass-soft flex rounded-full p-1" role="tablist" aria-label="视图模式切换">
+      {([['stage', '3D 舞台', IconDisc], ['list', '列表', IconList]] as const).map(([id, label, Icon]) => (
         <button
           key={id}
           role="tab"
@@ -59,7 +59,7 @@ export function AlbumRow({ album, index, onOpen, onPlay, onMore }: {
       <span className="track-stencil grid h-12 w-10 place-items-center text-[13px]" style={{ color: 'var(--c-ink-faint)' }}>
         {String(index + 1).padStart(2, '0')}
       </span>
-      <button className="relative h-12 w-12 shrink-0" onClick={onOpen} aria-label={`Open ${album.name}`} tabIndex={-1}>
+      <button className="relative h-12 w-12 shrink-0" onClick={onOpen} aria-label={`打开 ${album.name}`} tabIndex={-1}>
         <img src={album.coverUrl} alt="" loading="lazy" className="h-full w-full rounded-lg object-cover shadow-md transition-transform duration-500 group-hover:scale-105" />
         <span className="pointer-events-none absolute inset-0 rounded-lg" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }} />
       </button>
@@ -72,11 +72,11 @@ export function AlbumRow({ album, index, onOpen, onPlay, onMore }: {
         <span className="hidden w-16 text-right text-[12px] tabular-nums md:block" style={{ color: 'var(--c-ink-faint)' }}>
           {album.songIds.length} track{album.songIds.length !== 1 ? 's' : ''}
         </span>
-        <button className="icon-btn h-9 w-9" onClick={onPlay} aria-label={`Play ${album.name}`}><IconPlay size={16} /></button>
+        <button className="icon-btn h-9 w-9" onClick={onPlay} aria-label={`播放 ${album.name}`}><IconPlay size={16} /></button>
         <button
           className="icon-btn h-9 w-9"
           onClick={(e) => onMore(e.currentTarget as HTMLElement)}
-          aria-label={`More options for ${album.name}`}
+          aria-label={`${album.name} 的更多选项`}
         >
           <IconMore size={16} />
         </button>
@@ -101,7 +101,7 @@ export function ArtistRow({ artist, cover, count, top, index, onOpen, onPlay, on
       <span className="track-stencil grid h-12 w-10 place-items-center text-[13px]" style={{ color: 'var(--c-ink-faint)' }}>
         {String(index + 1).padStart(2, '0')}
       </span>
-      <button className="relative h-12 w-12 shrink-0" onClick={onOpen} aria-label={`Open ${artist.name}`} tabIndex={-1}>
+      <button className="relative h-12 w-12 shrink-0" onClick={onOpen} aria-label={`打开 ${artist.name}`} tabIndex={-1}>
         {cover
           ? <img src={cover} alt="" loading="lazy" className="h-full w-full rounded-full object-cover shadow-md" />
           : <span className="grid h-full w-full place-items-center rounded-full" style={{ background: 'var(--c-tint)' }}>{artist.name[0]}</span>}
@@ -110,16 +110,16 @@ export function ArtistRow({ artist, cover, count, top, index, onOpen, onPlay, on
         <span className="block w-full truncate text-[14.5px] font-medium">{artist.name}</span>
         <span className="block w-full truncate text-[12.5px]" style={{ color: 'var(--c-ink-dim)' }}>
           {artist.albumIds.length} album{artist.albumIds.length !== 1 ? 's' : ''}
-          {top ? ` · top: ${top}` : ''}
+          {top ? ` · 最常播放:${top}` : ''}
         </span>
       </button>
       <div className="flex items-center gap-1 pl-1">
         <span className="hidden text-[12px] tabular-nums md:block" style={{ color: 'var(--c-ink-faint)' }}>{count} song{count !== 1 ? 's' : ''}</span>
-        <button className="icon-btn h-9 w-9" onClick={onPlay} aria-label={`Play ${artist.name}`}><IconPlay size={16} /></button>
+        <button className="icon-btn h-9 w-9" onClick={onPlay} aria-label={`播放 ${artist.name}`}><IconPlay size={16} /></button>
         <button
           className="icon-btn h-9 w-9"
           onClick={(e) => onMore(e.currentTarget as HTMLElement)}
-          aria-label={`More options for ${artist.name}`}
+          aria-label={`${artist.name} 的更多选项`}
         >
           <IconMore size={16} />
         </button>

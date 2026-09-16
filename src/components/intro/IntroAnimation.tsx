@@ -65,7 +65,7 @@ export function IntroAnimation({ onLeaving, onDone }: { onLeaving?: () => void; 
           antialias: true,
           powerPreference: 'high-performance',
         })
-        if (!renderer.getContext()) throw new Error('no webgl context')
+        if (!renderer.getContext()) throw new Error('无法创建 WebGL 上下文')
       } catch {
         setFailed(true)
         return
@@ -141,7 +141,7 @@ export function IntroAnimation({ onLeaving, onDone }: { onLeaving?: () => void; 
         style={{ color: 'var(--c-ink-dim)', opacity: leaving ? 0 : 1 }}
         onClick={() => controllerRef.current?.skip()}
       >
-        Skip intro
+        跳过入场
       </button>
     </div>
   )

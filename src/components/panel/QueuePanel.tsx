@@ -22,7 +22,7 @@ export function QueuePanel() {
   return (
     <div className="flex h-full flex-col">
       <div className="px-1 pb-3">
-        <div className="mb-2 text-[11.5px] uppercase tracking-[0.22em]" style={{ color: 'var(--c-ink-faint)' }}>Now Playing</div>
+        <div className="mb-2 text-[11.5px] uppercase tracking-[0.22em]" style={{ color: 'var(--c-ink-faint)' }}>正在播放</div>
         {current ? (
           <div className="glass-soft flex items-center gap-3 rounded-xl p-3">
             <img src={current.coverUrl} alt="" className="h-12 w-12 rounded-lg object-cover" />
@@ -32,15 +32,15 @@ export function QueuePanel() {
             </div>
           </div>
         ) : (
-          <div className="rounded-xl px-2 py-3 text-[13px]" style={{ color: 'var(--c-ink-faint)' }}>Nothing playing.</div>
+          <div className="rounded-xl px-2 py-3 text-[13px]" style={{ color: 'var(--c-ink-faint)' }}>暂时没有播放。</div>
         )}
       </div>
 
       <div className="mb-2 flex items-center justify-between px-1">
-        <div className="text-[11.5px] uppercase tracking-[0.22em]" style={{ color: 'var(--c-ink-faint)' }}>Up Next · {queue.length}</div>
+        <div className="text-[11.5px] uppercase tracking-[0.22em]" style={{ color: 'var(--c-ink-faint)' }}>接下来 · {queue.length}</div>
         {queue.length > 0 && (
           <button className="text-[12px] underline-offset-2 hover:underline" style={{ color: 'var(--c-ink-faint)' }} onClick={clearQueue}>
-            Clear
+            清空
           </button>
         )}
       </div>
@@ -50,7 +50,7 @@ export function QueuePanel() {
           <div className="max-w-[210px]">
             <IconMusic size={28} />
             <p className="mt-3 text-[13px] leading-relaxed" style={{ color: 'var(--c-ink-faint)' }}>
-              The queue is empty. Right-click any song to play it next.
+              队列是空的。右键任意歌曲即可设为下一首。
             </p>
           </div>
         </div>
@@ -87,7 +87,7 @@ export function QueuePanel() {
                   <button
                     className="icon-btn h-8 w-8 opacity-0 group-hover:opacity-100"
                     onClick={() => usePlayerStore.getState().removeQueueAt(i)}
-                    aria-label={`Remove ${song.title} from queue`}
+                    aria-label={`把 ${song.title} 移出队列`}
                   >
                     <IconTrash size={14} />
                   </button>
@@ -132,10 +132,10 @@ export function LyricsPanel() {
   const follow = useLyricFollow(active)
 
   if (!song) {
-    return <EmptyLyrics text="Play something to see its lyrics drift by." />
+    return <EmptyLyrics text="播放一首歌,歌词就会在这里流过。" />
   }
   if (!lyrics.length) {
-    return <EmptyLyrics text="No synced lyrics for this song." />
+    return <EmptyLyrics text="这首歌没有带时间轴的歌词。" />
   }
 
   return (
@@ -144,7 +144,7 @@ export function LyricsPanel() {
         {...follow.bind}
         className="scroll-silk -mx-2 h-full px-2"
         style={{ maskImage: 'linear-gradient(transparent, #000 12%, #000 86%, transparent)', WebkitMaskImage: 'linear-gradient(transparent, #000 12%, #000 86%, transparent)' }}
-        aria-label="Lyrics — scroll to read ahead"
+        aria-label="歌词 —— 滚动可提前查看"
       >
         <div style={{ paddingTop: '38%', paddingBottom: '40%' }}>
           {lyrics.map((line, i) => {
@@ -173,7 +173,7 @@ export function LyricsPanel() {
           className="glass-soft absolute bottom-1 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[11px]"
           style={{ color: 'var(--c-ink-dim)' }}
         >
-          Follow lyrics
+          跟随歌词
         </button>
       )}
     </div>

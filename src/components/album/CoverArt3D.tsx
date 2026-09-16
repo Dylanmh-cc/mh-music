@@ -57,7 +57,7 @@ export const CoverArt3D = memo(function CoverArt3D({ albumId, url, name, size = 
         >
           <img
             src={url}
-            alt={`${name} album artwork`}
+            alt={`${name} 专辑封面`}
             className="h-full w-full select-none object-cover"
             draggable={false}
             loading="lazy"

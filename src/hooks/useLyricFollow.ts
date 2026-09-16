@@ -44,7 +44,7 @@ export function useLyricFollow(active: number, opts: { resumeAfter?: number } = 
     onWheel: hold,
     onTouchMove: hold,
     onKeyDown: (e: React.KeyboardEvent) => {
-      if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(e.key)) hold()
+      if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', '首页', 'End'].includes(e.key)) hold()
     },
   }
 

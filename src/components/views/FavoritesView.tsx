@@ -34,8 +34,8 @@ export function FavoritesView() {
     return (
       <EmptyState
         icon={<IconHeart size={28} />}
-        title="Your favorites will appear here."
-        hint="Tap the heart on any song or album and it will find its way to this room."
+        title="你的收藏会出现在这里。"
+        hint="点击歌曲或专辑上的爱心,它们就会来到这里。"
       />
     )
   }
@@ -45,8 +45,8 @@ export function FavoritesView() {
   return (
     <div className="mx-auto max-w-[1280px]">
       <SectionTitle
-        title="Favorites"
-        hint={`${favSongs.length} song${favSongs.length !== 1 ? 's' : ''} · ${favAlbums.length} album${favAlbums.length !== 1 ? 's' : ''} · ${favArtists.length} artist${favArtists.length !== 1 ? 's' : ''}`}
+        title="收藏"
+        hint={`${favSongs.length} 首 · ${favAlbums.length} 张专辑 · ${favArtists.length} 位艺术家`}
         action={
           <div className="flex items-center gap-2">
             <select
@@ -54,22 +54,22 @@ export function FavoritesView() {
               onChange={(e) => setSort(e.target.value as Sort)}
               className="glass-soft rounded-full bg-transparent px-3 py-1.5 text-[12px] outline-none"
               style={{ color: 'var(--c-ink-dim)' }}
-              aria-label="Sort favorites"
+              aria-label="收藏排序"
             >
-              <option value="recent" style={{ color: '#111' }}>Recently added</option>
-              <option value="title" style={{ color: '#111' }}>Title</option>
-              <option value="artist" style={{ color: '#111' }}>Artist</option>
+              <option value="recent" style={{ color: '#111' }}>最近添加</option>
+              <option value="title" style={{ color: '#111' }}>标题</option>
+              <option value="artist" style={{ color: '#111' }}>艺术家</option>
             </select>
             {favSongs.length > 0 && (
               <>
-                <GlassButton primary onClick={() => player.playSong(favSongs[0].id, contextIds, 'Favorites')}>
-                  <span className="flex items-center gap-2"><IconPlay size={13} /> Play All</span>
+                <GlassButton primary onClick={() => player.playSong(favSongs[0].id, contextIds, '收藏')}>
+                  <span className="flex items-center gap-2"><IconPlay size={13} /> 播放全部</span>
                 </GlassButton>
                 <GlassButton onClick={() => {
                   const list = shuffle(favSongs)
-                  player.playSong(list[0].id, list.map((s) => s.id), 'Favorites Shuffle')
+                  player.playSong(list[0].id, list.map((s) => s.id), '收藏随机播放')
                 }}>
-                  <span className="flex items-center gap-2"><IconShuffle size={13} /> Shuffle</span>
+                  <span className="flex items-center gap-2"><IconShuffle size={13} /> 随机播放</span>
                 </GlassButton>
               </>
             )}
@@ -97,32 +97,32 @@ export function FavoritesView() {
         <Stage3D
           items={favSongs}
           keyOf={(s) => s.id}
-          label="Favorites stage"
+          label="收藏舞台"
           thumbnailOf={(s) => s.coverUrl}
           followKey={player.songId}
-          onActivate={(song) => (player.songId === song.id ? player.toggle() : player.playSong(song.id, contextIds, 'Favorites'))}
+          onActivate={(song) => (player.songId === song.id ? player.toggle() : player.playSong(song.id, contextIds, '收藏'))}
           renderCard={(song) => {
             const album = lib.getAlbum(song.albumId)
             const isCurrent = player.songId === song.id
             const isPlaying = isCurrent && player.isPlaying
-            const play = () => (isCurrent ? player.toggle() : player.playSong(song.id, contextIds, 'Favorites'))
+            const play = () => (isCurrent ? player.toggle() : player.playSong(song.id, contextIds, '收藏'))
             return (
               <StageCardBody
-                artLabel={`${isPlaying ? 'Pause' : 'Play'} ${song.title}`}
+                artLabel={`${isPlaying ? '暂停' : '播放'} ${song.title}`}
                 art={<img src={song.coverUrl} alt="" loading="lazy" draggable={false} className="h-full w-full object-cover" />}
                 title={song.title}
                 subtitle={`${song.artist} · ${album?.name ?? '—'}`}
                 onActivate={play}
                 actions={
                   <>
-                    <span onClick={play} className="lg-btn lg-btn-primary grid h-10 w-10 cursor-pointer place-items-center" role="button" aria-label={isPlaying ? 'Pause' : 'Play'}>
+                    <span onClick={play} className="lg-btn lg-btn-primary grid h-10 w-10 cursor-pointer place-items-center" role="button" aria-label={isPlaying ? '暂停' : '播放'}>
                       {isPlaying ? <IconPause size={16} /> : <IconPlay size={16} />}
                     </span>
                     <button
                       className="icon-btn active h-9 w-9"
                       style={{ color: 'var(--c-accent-2)' }}
                       onClick={(e) => { e.stopPropagation(); lib.toggleFavSong(song.id) }}
-                      aria-label={`Remove ${song.title} from favorites`}
+                      aria-label={`取消收藏 ${song.title}`}
                     >
                       <IconHeartFill size={16} />
                     </button>
@@ -133,7 +133,7 @@ export function FavoritesView() {
                         const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
                         ui.openCtx(r.left - 210, r.bottom + 6, songMenuItems(song))
                       }}
-                      aria-label={`More options for ${song.title}`}
+                      aria-label={`${song.title} 的更多选项`}
                     >
                       <IconMore size={15} />
                     </button>
@@ -163,7 +163,7 @@ export function FavoritesView() {
               <button
                 className="flex items-center gap-2"
                 onClick={() => ui.navigate('artist', { artistId: a.id })}
-                aria-label={`Open artist ${a.name}`}
+                aria-label={`打开歌手 ${a.name}`}
               >
                 <span className="grid h-7 w-7 place-items-center rounded-full text-[11px] font-semibold" style={{ background: 'var(--c-tint)', color: 'var(--c-accent-2)' }}>
                   {a.name[0]}
@@ -174,7 +174,7 @@ export function FavoritesView() {
                 className="icon-btn h-7 w-7 active"
                 style={{ color: 'var(--c-accent-2)' }}
                 onClick={() => lib.toggleFavArtist(a.id)}
-                aria-label={`Remove ${a.name} from favorites`}
+                aria-label={`取消收藏 ${a.name}`}
               >
                 <IconHeartFill size={13} />
               </button>

@@ -44,14 +44,14 @@ interface RailItem { view: ViewID; label: string; icon: (p: { size?: number }) =
  *  track list lives on the home page as a stack, and `/songs` stays reachable
  *  from there and from the address bar. */
 const RAIL: RailItem[] = [
-  { view: 'home', label: 'Home', icon: IconHome, path: '/home' },
-  { view: 'browse', label: 'Browse', icon: IconSparkle, path: '/browse' },
-  { view: 'albums', label: 'Albums', icon: IconAlbum, path: '/albums' },
-  { view: 'artists', label: 'Artists', icon: IconArtist, path: '/artists' },
-  { view: 'playlists', label: 'Playlists', icon: IconList, path: '/playlists' },
-  { view: 'favorites', label: 'Favorites', icon: IconHeart, path: '/favorites' },
-  { view: 'recent', label: 'Recently Played', icon: IconVinyl, path: '/recently-played' },
-  { view: 'folders', label: 'Folders', icon: IconFolder, path: '/folders' },
+  { view: 'home', label: '首页', icon: IconHome, path: '/home' },
+  { view: 'browse', label: '浏览', icon: IconSparkle, path: '/browse' },
+  { view: 'albums', label: '专辑', icon: IconAlbum, path: '/albums' },
+  { view: 'artists', label: '艺术家', icon: IconArtist, path: '/artists' },
+  { view: 'playlists', label: '歌单', icon: IconList, path: '/playlists' },
+  { view: 'favorites', label: '收藏', icon: IconHeart, path: '/favorites' },
+  { view: 'recent', label: '最近播放', icon: IconVinyl, path: '/recently-played' },
+  { view: 'folders', label: '文件夹', icon: IconFolder, path: '/folders' },
 ]
 
 /**
@@ -193,11 +193,11 @@ function NavRail() {
         <MHLogo size={30} />
         <span className="mh-rail-label mh-display truncate text-[15px] leading-none">
           MH Music
-          <span className="mh-overline mt-1 block" style={{ color: 'var(--c-ink-faint)' }}>Beyond sound</span>
+          <span className="mh-overline mt-1 block" style={{ color: 'var(--c-ink-faint)' }}>超越声音</span>
         </span>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1" aria-label="Main">
+      <nav className="flex flex-1 flex-col gap-1" aria-label="主导航">
         {RAIL.map((item) => {
           const Icon = item.icon
           return (
@@ -221,38 +221,38 @@ function NavRail() {
         <button
           className="mh-rail-item"
           data-active={view === 'visualizer' ? 'true' : undefined}
-          aria-label="Visualizer"
-          title="Visualizer"
+          aria-label="可视化效果"
+          title="可视化效果"
           onClick={() => { useUiStore.getState().navigate('visualizer'); pushPath('/visualizer') }}
         >
           <span className="grid h-6 w-6 shrink-0 place-items-center"><IconWave size={18} /></span>
-          <span className="mh-rail-label text-[13.5px]">Visualizer</span>
+          <span className="mh-rail-label text-[13.5px]">可视化效果</span>
         </button>
         <button
           className="mh-rail-item"
           data-active={view === 'import' ? 'true' : undefined}
-          aria-label="Import playlist"
-          title="Import playlist"
+          aria-label="导入歌单"
+          title="导入歌单"
           onClick={() => { useUiStore.getState().navigate('import'); pushPath('/import') }}
         >
           <span className="grid h-6 w-6 shrink-0 place-items-center"><IconImport size={18} /></span>
-          <span className="mh-rail-label text-[13.5px]">Import</span>
+          <span className="mh-rail-label text-[13.5px]">导入</span>
         </button>
         <button
           className="mh-rail-item"
           data-active={view === 'settings' ? 'true' : undefined}
-          aria-label="Settings"
-          title="Settings"
+          aria-label="设置"
+          title="设置"
           onClick={() => { useUiStore.getState().navigate('settings'); pushPath('/settings') }}
         >
           <span className="grid h-6 w-6 shrink-0 place-items-center"><IconSettings size={18} /></span>
-          <span className="mh-rail-label text-[13.5px]">Settings</span>
+          <span className="mh-rail-label text-[13.5px]">设置</span>
         </button>
         <button
           className="mh-rail-item"
           data-active={route.replace(/^\/+/, '') === 'profile' ? 'true' : undefined}
-          aria-label="Profile"
-          title="Profile"
+          aria-label="账户"
+          title="账户"
           onClick={() => pushPath(PROFILE_PATH)}
         >
           <span className="grid h-6 w-6 shrink-0 place-items-center">
@@ -260,7 +260,7 @@ function NavRail() {
               ? <span className="grid h-6 w-6 place-items-center rounded-full text-[10.5px] font-bold" style={{ background: 'var(--c-tint)', color: 'var(--c-accent-2)' }}>{user.name.slice(0, 1).toUpperCase()}</span>
               : <IconUser size={18} />}
           </span>
-          <span className="mh-rail-label text-[13.5px]">{user?.name ?? 'Profile'}</span>
+          <span className="mh-rail-label text-[13.5px]">{user?.name ?? '账户'}</span>
         </button>
       </div>
     </GlassPanel>
@@ -272,11 +272,11 @@ function MobileBar({ onSearch }: { onSearch: () => void }) {
   const view = useUiStore((s) => s.view)
   const navigate = useUiStore((s) => s.navigate)
   const items: Array<{ key: string; label: string; icon: (p: { size?: number }) => JSX.Element; run: () => void }> = [
-    { key: 'home', label: 'Home', icon: IconHome, run: () => navigate('home') },
-    { key: 'albums', label: 'Albums', icon: IconAlbum, run: () => navigate('albums') },
-    { key: 'search', label: 'Search', icon: IconSearch, run: onSearch },
-    { key: 'favorites', label: 'Favorites', icon: IconHeart, run: () => navigate('favorites') },
-    { key: 'settings', label: 'Settings', icon: IconSettings, run: () => navigate('settings') },
+    { key: 'home', label: '首页', icon: IconHome, run: () => navigate('home') },
+    { key: 'albums', label: '专辑', icon: IconAlbum, run: () => navigate('albums') },
+    { key: 'search', label: '搜索', icon: IconSearch, run: onSearch },
+    { key: 'favorites', label: '收藏', icon: IconHeart, run: () => navigate('favorites') },
+    { key: 'settings', label: '设置', icon: IconSettings, run: () => navigate('settings') },
   ]
   return (
     <nav className="fixed inset-x-3 bottom-[116px] z-[65] md:hidden" aria-label="Mobile navigation">

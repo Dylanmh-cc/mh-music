@@ -288,7 +288,7 @@ export function StreetLayer({ className }: { className?: string } = {}) {
       {/* neon over the shopfront */}
       <div className="st-neon" style={{ left: '6%', top: '14%', width: 132, height: 40 }} />
       <div className="st-neon" style={{ right: '8%', top: '30%', width: 96, height: 30, animationDelay: '-3.5s' }} />
-      <div className="st-sign" style={{ left: '7.5%', top: '15.5%' }}>Records</div>
+      <div className="st-sign" style={{ left: '7.5%', top: '15.5%' }}>唱片</div>
 
       {/* flyposters on the wall */}
       <div className="st-poster" style={{ right: '5%', top: '16%', width: 118, height: 158, transform: 'rotate(-2.5deg)' }} />

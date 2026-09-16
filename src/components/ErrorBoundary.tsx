@@ -25,17 +25,16 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
       <div className="fixed inset-0 grid place-items-center p-6" style={{ background: '#07080c' }}>
         <div className="glass w-full max-w-[440px] rounded-3xl p-7 text-center">
           <div className="mx-auto mb-5 h-14 w-14 rounded-full vinyl"><div className="vinyl-label" /></div>
-          <h1 className="text-[19px] font-semibold">The needle skipped.</h1>
+          <h1 className="text-[19px] font-semibold">唱针跳针了。</h1>
           <p className="mt-2 text-[13px] leading-relaxed" style={{ color: 'var(--c-ink-dim)' }}>
-            Something went wrong while rendering. Your library and playlists are safe — try again, or reset the
-            visual state if it keeps happening.
+            渲染时出了点问题。你的音乐库和歌单都安然无恙 —— 可以再试一次;如果反复出现,就重置视觉状态。
           </p>
           <pre className="mt-4 max-h-[110px] overflow-auto rounded-xl bg-black/40 p-3 text-left text-[11px] leading-relaxed" style={{ color: 'var(--c-ink-faint)' }}>
             {String(error?.message ?? error)}
           </pre>
           <div className="mt-5 flex flex-wrap justify-center gap-2.5">
             <button className="lg-btn lg-btn-primary px-5 py-2.5 text-[13px] font-semibold" onClick={() => this.setState({ error: null })}>
-              Try again
+              再试一次
             </button>
             <button
               className="lg-btn px-5 py-2.5 text-[13px]"
@@ -51,7 +50,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
                 location.reload()
               }}
             >
-              Reset visuals & reload
+              重置视觉并重新加载
             </button>
           </div>
         </div>

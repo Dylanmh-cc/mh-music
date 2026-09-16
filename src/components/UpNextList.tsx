@@ -6,7 +6,7 @@ import { IconNote, IconTrash } from './icons'
 import { IconButton } from './glass/GlassPanel'
 
 /**
- * "Up next" — the queue as a draggable, numbered list.
+ * "接下来" — the queue as a draggable, numbered list.
  *
  * One implementation, used in two places: the floating queue panel, and the
  * right-hand column of the home page (where the queue belongs to the page
@@ -22,7 +22,7 @@ export function UpNextList({ className }: { className?: string }) {
         <div className="max-w-[210px]">
           <IconNote size={24} />
           <p className="mt-3 text-[12.5px] leading-relaxed" style={{ color: 'var(--c-ink-faint)' }}>
-            The queue is empty. Right-click any song to play it next.
+            队列是空的。右键任意歌曲即可设为下一首。
           </p>
         </div>
       </div>
@@ -50,7 +50,7 @@ export function UpNextList({ className }: { className?: string }) {
             <button
               className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
               onClick={() => usePlayerStore.getState().loadAndPlay(song.id)}
-              aria-label={`Play ${song.title}`}
+              aria-label={`播放 ${song.title}`}
             >
               <img src={song.coverUrl} alt="" loading="lazy" className="h-10 w-10 rounded-lg object-cover" />
               <span className="min-w-0">
@@ -60,7 +60,7 @@ export function UpNextList({ className }: { className?: string }) {
             </button>
             <span className="mh-mono text-[11px]" style={{ color: 'var(--c-ink-faint)' }}>{fmtTime(song.duration)}</span>
             <IconButton
-              label={`Remove ${song.title} from the queue`}
+              label={`把 ${song.title} 移出队列`}
               className="h-8 w-8 opacity-0 group-hover:opacity-100"
               onClick={() => usePlayerStore.getState().removeQueueAt(i)}
             >
@@ -73,19 +73,19 @@ export function UpNextList({ className }: { className?: string }) {
   )
 }
 
-/** The small "Up next" heading with its Clear action, shared with the panel. */
+/** The small "接下来" heading with its Clear action, shared with the panel. */
 export function UpNextHeader() {
   const count = usePlayerStore((s) => s.queue.length)
   return (
     <div className="flex items-center justify-between px-2 pb-2">
-      <span className="mh-overline" style={{ color: 'var(--c-ink-faint)' }}>Up next</span>
+      <span className="mh-overline" style={{ color: 'var(--c-ink-faint)' }}>接下来</span>
       {count > 0 && (
         <button
           className="text-[11.5px] underline-offset-2 hover:underline"
           style={{ color: 'var(--c-ink-faint)' }}
           onClick={() => usePlayerStore.getState().clearQueue()}
         >
-          Clear
+          清空
         </button>
       )}
     </div>

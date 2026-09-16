@@ -3,11 +3,11 @@ import type { ViewID } from '../../types/models'
 import { IconHome, IconAlbum, IconSearch, IconHeart, IconSettings } from '../icons'
 
 const TABS: Array<{ id: ViewID | 'search'; label: string; icon: (p: { size?: number }) => JSX.Element }> = [
-  { id: 'home', label: 'Home', icon: IconHome },
-  { id: 'albums', label: 'Albums', icon: IconAlbum },
-  { id: 'search', label: 'Search', icon: IconSearch },
-  { id: 'favorites', label: 'Favorites', icon: IconHeart },
-  { id: 'settings', label: 'Settings', icon: IconSettings },
+  { id: 'home', label: '首页', icon: IconHome },
+  { id: 'albums', label: '专辑', icon: IconAlbum },
+  { id: 'search', label: '搜索', icon: IconSearch },
+  { id: 'favorites', label: '收藏', icon: IconHeart },
+  { id: 'settings', label: '设置', icon: IconSettings },
 ]
 
 export function MobileNav() {
@@ -18,7 +18,7 @@ export function MobileNav() {
   return (
     <nav
       className="glass-pill fixed inset-x-3 bottom-3 z-40 flex items-stretch justify-around rounded-3xl md:hidden"
-      aria-label="Mobile navigation"
+      aria-label="移动端导航"
     >
       {TABS.map((t) => {
         const Icon = t.icon

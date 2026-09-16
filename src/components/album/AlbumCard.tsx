@@ -61,19 +61,19 @@ export const AlbumCard = memo(function AlbumCard({ album, dimmed, onHover, index
   }, [out, playingThis, album.id, setVinylOut])
 
   const albumMenu = useCallback((): CtxItem[] => [
-    { label: 'Play Album', action: play },
-    { label: playingThis && isPlaying ? 'Pause' : 'Resume', action: () => usePlayerStore.getState().toggle() },
+    { label: '播放专辑', action: play },
+    { label: playingThis && isPlaying ? '暂停' : '继续播放', action: () => usePlayerStore.getState().toggle() },
     { sep: true },
-    { label: fav ? 'Remove from Favorites' : 'Add to Favorites', action: () => lib.toggleFavAlbum(album.id) },
-    { label: 'Open Album', action: () => ui.navigate('album', { albumId: album.id }) },
+    { label: fav ? '取消收藏' : '加入收藏', action: () => lib.toggleFavAlbum(album.id) },
+    { label: '打开专辑', action: () => ui.navigate('album', { albumId: album.id }) },
     {
-      label: 'Add to Playlist',
+      label: '添加到歌单',
       submenu: lib.playlists.length
         ? lib.playlists.map((p) => ({ label: p.name, action: () => lib.addToPlaylist(p.id, album.songIds) }))
-        : [{ label: 'Create a playlist first…', action: () => ui.navigate('playlists') }],
+        : [{ label: '请先创建一个歌单…', action: () => ui.navigate('playlists') }],
     },
     { sep: true },
-    { label: 'Delete Album', danger: true, action: () => confirmDeleteAlbum(album) },
+    { label: '删除专辑', danger: true, action: () => confirmDeleteAlbum(album) },
   ], [album, fav, isPlaying, lib, play, playingThis, ui])
 
   return (
@@ -122,7 +122,7 @@ export const AlbumCard = memo(function AlbumCard({ album, dimmed, onHover, index
             className="h-full w-full cursor-pointer"
             onClick={(e) => { e.stopPropagation(); playingThis ? setManualHide(true) : setVinylOut(null) }}
             role="button"
-            aria-label="Retract vinyl"
+            aria-label="收回唱片"
           >
             <VinylDisc spinning={playingThis && isPlaying} speed="normal" labelUrl={album.coverUrl} className="h-full w-full" />
             {/* spray ring that pulses with the record */}
@@ -181,7 +181,7 @@ export const AlbumCard = memo(function AlbumCard({ album, dimmed, onHover, index
               <button
                 className="lg-btn lg-btn-primary grid h-11 w-11 place-items-center rounded-full"
                 onClick={(e) => { e.stopPropagation(); if (playingThis && isPlaying) usePlayerStore.getState().toggle(); else play() }}
-                aria-label={playingThis && isPlaying ? `Pause ${album.name}` : `Play ${album.name}`}
+                aria-label={playingThis && isPlaying ? `暂停 ${album.name}` : `播放 ${album.name}`}
               >
                 {playingThis && isPlaying ? <IconPause size={17} /> : <IconPlay size={17} />}
               </button>
@@ -189,7 +189,7 @@ export const AlbumCard = memo(function AlbumCard({ album, dimmed, onHover, index
                 <button
                   className="glass-soft grid h-10 w-10 place-items-center rounded-full"
                   onClick={(e) => { e.stopPropagation(); lib.toggleFavAlbum(album.id) }}
-                  aria-label={fav ? 'Remove album from favorites' : 'Add album to favorites'}
+                  aria-label={fav ? '取消收藏这张专辑' : '收藏这张专辑'}
                   style={{ color: fav ? 'var(--c-accent-2)' : undefined }}
                 >
                   {fav ? <IconHeartFill size={15} /> : <IconHeart size={15} />}
@@ -197,7 +197,7 @@ export const AlbumCard = memo(function AlbumCard({ album, dimmed, onHover, index
                 <button
                   className="glass-soft grid h-10 w-10 place-items-center rounded-full"
                   onClick={(e) => { e.stopPropagation(); ui.navigate('album', { albumId: album.id }) }}
-                  aria-label={`Open ${album.name}`}
+                  aria-label={`打开 ${album.name}`}
                 >
                   <IconForward size={15} />
                 </button>
@@ -208,7 +208,7 @@ export const AlbumCard = memo(function AlbumCard({ album, dimmed, onHover, index
                     const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
                     ui.openCtx(r.left - 190, r.bottom + 6, albumMenu())
                   }}
-                  aria-label={`More options for ${album.name}`}
+                  aria-label={`${album.name} 的更多选项`}
                 >
                   <IconMore size={15} />
                 </button>
@@ -222,7 +222,7 @@ export const AlbumCard = memo(function AlbumCard({ album, dimmed, onHover, index
       <button
         className="album-meta mt-3 block w-full text-left"
         onClick={() => ui.navigate('album', { albumId: album.id })}
-        aria-label={`Open album ${album.name}`}
+        aria-label={`打开专辑 ${album.name}`}
       >
         <div className="flex items-baseline gap-2">
           <span className="track-stencil text-[11px]" style={{ color: 'var(--c-ink-faint)' }}>{String(index + 1).padStart(2, '0')}</span>

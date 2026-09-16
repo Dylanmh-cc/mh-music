@@ -32,7 +32,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   init: async () => {
     const session = auth.readSession()
     if (!session) { set({ status: 'anon', user: null }); return }
-    const user = auth.listUsers().find((u) => u.id === session.uid)
+    // With a backend the server is the authority on who this token belongs to;
+    // looking the user up in the *local* list signed everyone out on every load
+    // once accounts moved to the server, which is why the password was asked for
+    // again each time. `verifyRemoteSession` returns null when no backend is
+    // configured, so the local path is unchanged.
+    const remoteUser = await auth.verifyRemoteSession()
+    const user = remoteUser ?? auth.listUsers().find((u) => u.id === session.uid) ?? null
     if (!user) { auth.logout(); set({ status: 'anon', user: null }); return }
     await enterSession(user)
     set({ status: 'authed', user })

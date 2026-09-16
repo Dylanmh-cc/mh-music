@@ -35,7 +35,7 @@ function loadImage(file: File): Promise<HTMLImageElement> {
     const url = URL.createObjectURL(file)
     const img = new Image()
     img.onload = () => { URL.revokeObjectURL(url); resolve(img) }
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('could not read that image')) }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('无法读取该图片')) }
     img.src = url
   })
 }

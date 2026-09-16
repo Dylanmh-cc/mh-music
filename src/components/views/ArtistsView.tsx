@@ -18,7 +18,7 @@ export function ArtistsView() {
   const ui = useUiStore()
 
   if (!artists.length) {
-    return <EmptyState icon={<IconArtist size={30} />} title="No artists yet." hint="They appear once your library grows." />
+    return <EmptyState icon={<IconArtist size={30} />} title="还没有艺术家。" hint="音乐库丰富后会出现在这里。" />
   }
 
   const sorted = artists.slice().sort((a, b) => a.name.localeCompare(b.name))
@@ -35,8 +35,8 @@ export function ArtistsView() {
   return (
     <div className="mx-auto max-w-[1280px]">
       <SectionTitle
-        title="Artists"
-        hint={`${artists.length} artists`}
+        title="艺术家"
+        hint={`共 ${artists.length} 位艺术家`}
         action={<ViewModeToggle page="artists" />}
       />
 
@@ -60,8 +60,8 @@ export function ArtistsView() {
                 onMore={(el) => {
                   const r = el.getBoundingClientRect()
                   ui.openCtx(r.left - 210, r.bottom + 6, [
-                    { label: 'Open Artist', action: () => ui.navigate('artist', { artistId: artist.id }) },
-                    { label: 'Play Artist', action: () => play(artist) },
+                    { label: '打开艺术家', action: () => ui.navigate('artist', { artistId: artist.id }) },
+                    { label: '播放艺术家', action: () => play(artist) },
                   ])
                 }}
               />
@@ -72,7 +72,7 @@ export function ArtistsView() {
         <Stage3D
         items={sorted}
         keyOf={(a) => a.id}
-        label="Artist stage"
+        label="艺术家舞台"
         thumbnailOf={(a) => lib.getAlbum(a.albumIds[0])?.coverUrl}
         cardWidth={312}
         stageHeight={560}
@@ -88,7 +88,7 @@ export function ArtistsView() {
           const play = () => top && player.playSong(top.id, artist.songIds, artist.name)
           return (
             <StageCardBody
-              artLabel={`Open artist ${artist.name}`}
+              artLabel={`打开歌手 ${artist.name}`}
               art={
                 <>
                   {cover
@@ -107,8 +107,8 @@ export function ArtistsView() {
                 </>
               }
               title={artist.name}
-              subtitle={`${artist.albumIds.length} album${artist.albumIds.length !== 1 ? 's' : ''} · ${artist.songIds.length} song${artist.songIds.length !== 1 ? 's' : ''}`}
-              sub2={top ? `Top: ${top.title}` : undefined}
+              subtitle={`${artist.albumIds.length} 张专辑 · ${artist.songIds.length} 首`}
+              sub2={top ? `最常播放:${top.title}` : undefined}
               onActivate={() => ui.navigate('artist', { artistId: artist.id })}
               actions={
                 <>
@@ -116,7 +116,7 @@ export function ArtistsView() {
                     onClick={play}
                     className="lg-btn lg-btn-primary grid h-10 w-10 cursor-pointer place-items-center"
                     role="button"
-                    aria-label={`Play ${artist.name}`}
+                    aria-label={`播放 ${artist.name}`}
                   >
                     <IconPlay size={16} />
                   </span>
@@ -124,7 +124,7 @@ export function ArtistsView() {
                     className={cn('icon-btn h-9 w-9', fav && 'active')}
                     style={{ color: fav ? 'var(--c-accent-2)' : undefined }}
                     onClick={(e) => { e.stopPropagation(); lib.toggleFavArtist(artist.id) }}
-                    aria-label={fav ? 'Remove artist from favorites' : 'Add artist to favorites'}
+                    aria-label={fav ? '取消收藏这位艺术家' : '收藏这位艺术家'}
                   >
                     {fav ? <IconHeartFill size={16} /> : <IconHeart size={16} />}
                   </button>
@@ -134,13 +134,13 @@ export function ArtistsView() {
                       e.stopPropagation()
                       const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
                       ui.openCtx(r.left - 210, r.bottom + 6, [
-                        { label: 'Open Artist', action: () => ui.navigate('artist', { artistId: artist.id }) },
-                        { label: 'Play Artist', action: play },
+                        { label: '打开艺术家', action: () => ui.navigate('artist', { artistId: artist.id }) },
+                        { label: '播放艺术家', action: play },
                         { sep: true },
-                        { label: fav ? 'Remove from Favorites' : 'Add to Favorites', action: () => lib.toggleFavArtist(artist.id) },
+                        { label: fav ? '取消收藏' : '加入收藏', action: () => lib.toggleFavArtist(artist.id) },
                       ])
                     }}
-                    aria-label={`More options for ${artist.name}`}
+                    aria-label={`${artist.name} 的更多选项`}
                   >
                     <IconMore size={15} />
                   </button>

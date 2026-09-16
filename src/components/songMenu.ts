@@ -21,34 +21,34 @@ export function songMenuItems(song: Song): CtxItem[] {
       label: p.name,
       action: () => lib.addToPlaylist(p.id, [song.id]),
     }))
-    : [{ label: 'Create a playlist first…', action: () => ui.navigate('playlists') }]
+    : [{ label: '请先创建一个歌单…', action: () => ui.navigate('playlists') }]
 
   return [
-    { label: 'Play', action: () => player.playSong(song.id, playContext, 'Context') },
-    { label: 'Play Next', action: () => player.playNext(song.id) },
-    { label: 'Add to Queue', action: () => player.addToQueue(song.id) },
-    { label: 'Add to Playlist', submenu: playlistSub },
+    { label: '播放', action: () => player.playSong(song.id, playContext, '右键菜单') },
+    { label: '下一首播放', action: () => player.playNext(song.id) },
+    { label: '加入播放队列', action: () => player.addToQueue(song.id) },
+    { label: '添加到歌单', submenu: playlistSub },
     { sep: true },
-    { label: fav ? 'Remove from Favorites' : 'Add to Favorites', action: () => lib.toggleFavSong(song.id) },
-    { label: 'Go to Album', disabled: !song.albumId, action: () => song.albumId && ui.navigate('album', { albumId: song.albumId }) },
+    { label: fav ? '取消收藏' : '加入收藏', action: () => lib.toggleFavSong(song.id) },
+    { label: '前往专辑', disabled: !song.albumId, action: () => song.albumId && ui.navigate('album', { albumId: song.albumId }) },
     {
-      label: 'Go to Artist',
+      label: '前往艺术家',
       action: () => {
         const artist = lib.artists.find((a) => a.name === song.artist)
         if (artist) ui.navigate('artist', { artistId: artist.id })
-        else toast('info', 'Artist page is only available for library artists.')
+        else toast('info', '只有音乐库中的歌手才有歌手页面。')
       },
     },
-    { label: 'Show in Folders', disabled: !song.folderId, action: () => song.folderId && ui.navigate('folders') },
+    { label: '在文件夹中显示', disabled: !song.folderId, action: () => song.folderId && ui.navigate('folders') },
     { sep: true },
     // Flat on purpose: these were nested under one item with a submenu, and the
     // expansion inside the context menu proved unreliable — two direct rows cost
     // one extra line and always respond.
-    { label: 'Choose Lyrics File…', action: () => pickLyricsFile(song) },
-    { label: 'Paste Lyrics from Clipboard', action: () => void pasteLyrics(song) },
-    ...(song.lrc?.length ? [{ label: 'Remove Lyrics', danger: true, action: () => lib.setSongLyrics(song.id) }] : []),
+    { label: '选择歌词文件…', action: () => pickLyricsFile(song) },
+    { label: '从剪贴板粘贴歌词', action: () => void pasteLyrics(song) },
+    ...(song.lrc?.length ? [{ label: '清除歌词', danger: true, action: () => lib.setSongLyrics(song.id) }] : []),
     { sep: true },
-    { label: 'Remove from Library', danger: true, action: () => confirmDeleteSong(song) },
+    { label: '从音乐库移除', danger: true, action: () => confirmDeleteSong(song) },
   ]
 }
 
@@ -79,17 +79,17 @@ function pickLyricsFile(song: Song) {
         // both numbers matter: file.size 0 means the file really is empty (a
         // cloud placeholder reads this way), while a mismatch would mean we
         // failed to read bytes the browser says are there
-        toast('error', `“${file.name}” reads as empty — the file reports ${file.size} bytes.`)
+        toast('error', `「${file.name}」读出来是空的 —— 文件大小为 ${file.size} 字节。`)
         return
       }
       const text = decodeLyricBytes(buf)
       if (!text.trim()) {
-        toast('error', `“${file.name}” has ${buf.byteLength} bytes but no readable text.`)
+        toast('error', `「${file.name}」有 ${buf.byteLength} 字节,但读不出任何文本。`)
         return
       }
       useLibraryStore.getState().setSongLyrics(song.id, text)
     } catch {
-      toast('error', 'That lyric file could not be read.')
+      toast('error', '无法读取该歌词文件。')
     } finally {
       done()
     }
@@ -100,9 +100,9 @@ function pickLyricsFile(song: Song) {
 async function pasteLyrics(song: Song) {
   try {
     const text = await navigator.clipboard.readText()
-    if (!text.trim()) { toast('info', 'The clipboard is empty.'); return }
+    if (!text.trim()) { toast('info', '剪贴板是空的。'); return }
     useLibraryStore.getState().setSongLyrics(song.id, text)
   } catch {
-    toast('error', 'The clipboard could not be read — allow clipboard access, or choose a .lrc file instead.')
+    toast('error', '无法读取剪贴板 —— 请允许剪贴板权限,或改为选择一个 .lrc 文件。')
   }
 }

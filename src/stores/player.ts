@@ -56,7 +56,7 @@ function wireEngine() {
   audio.setCallbacks(
     () => usePlayerStore.getState().next(true),
     () => {
-      toast('error', 'Unable to play this song')
+      toast('error', '无法播放这首歌曲')
       const st = usePlayerStore.getState()
       if (st.queue.length || st.context.length) st.next(true)
       else st.setPlaying(false)
@@ -97,9 +97,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   playSong: async (songId, contextIds, from) => {
     const song = useLibraryStore.getState().getSong(songId)
-    if (!song) { toast('error', 'Song not found'); return }
+    if (!song) { toast('error', '没有找到这首歌曲'); return }
     if (!song.url) {
-      toast('error', 'This file is unavailable — rescan its folder from Library → Folders.')
+      toast('error', '该文件不可用 —— 请在「音乐库 → 文件夹」里重新扫描它所在的文件夹。')
       return
     }
     set({ context: contextIds.length ? contextIds : [songId], from })
@@ -122,7 +122,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const song = lib.getSong(songId)
     if (!song) return
     if (!song.url) {
-      toast('error', 'This file is unavailable — rescan its folder from Library → Folders.')
+      toast('error', '该文件不可用 —— 请在「音乐库 → 文件夹」里重新扫描它所在的文件夹。')
       return
     }
     wireEngine()
@@ -139,7 +139,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     try {
       await audio.load(song.url)
     } catch {
-      toast('error', 'Unable to play this song')
+      toast('error', '无法播放这首歌曲')
       return
     }
     const target = get().muted ? 0 : cfg.volume
@@ -148,7 +148,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     try {
       await audio.play()
     } catch {
-      toast('info', 'Playback needs a tap — press play to start.')
+      toast('info', '浏览器要求先有一次点击 —— 按播放键开始。')
       set({ songId, isPlaying: false, position: 0, duration: song.duration })
       return
     }
@@ -162,8 +162,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const st = get()
     if (!st.songId) {
       const songs = useLibraryStore.getState().songs
-      if (!songs.length) { toast('info', 'Your library is empty — add a music folder first.'); return }
-      await get().playSong(songs[0].id, songs.map((s) => s.id), 'Library')
+      if (!songs.length) { toast('info', '音乐库是空的 —— 请先添加音乐文件夹。'); return }
+      await get().playSong(songs[0].id, songs.map((s) => s.id), '音乐库')
       return
     }
     if (st.isPlaying) {
@@ -172,7 +172,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     } else {
       const song = useLibraryStore.getState().getSong(st.songId)
       if (song && !song.url) {
-        toast('error', 'This file is unavailable — rescan its folder.')
+        toast('error', '该文件不可用 —— 请重新扫描它所在的文件夹。')
         return
       }
       audio.attach()
@@ -249,9 +249,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       repeat: mode === 'repeat-one' ? 'one' : mode === 'repeat-all' ? 'all' : 'off',
     })
     if (get().songId) get().__rebuildQueue(get().songId!)
-    toast('info', mode === 'shuffle' ? 'Shuffle'
-      : mode === 'repeat-one' ? 'Repeat one'
-        : mode === 'repeat-all' ? 'Repeat all' : 'Sequential')
+    toast('info', mode === 'shuffle' ? '随机播放'
+      : mode === 'repeat-one' ? '单曲循环'
+        : mode === 'repeat-all' ? '列表循环' : '顺序播放')
   },
 
   toggleShuffle: () => get().setPlayMode(get().playMode === 'shuffle' ? 'sequential' : 'shuffle'),
@@ -265,11 +265,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   playNext: (songId) => {
     set((s) => ({ queue: [{ songId, from: s.from }, ...s.queue] }))
-    toast('success', 'Playing next')
+    toast('success', '已设为下一首播放')
   },
   addToQueue: (songId) => {
     set((s) => ({ queue: [...s.queue, { songId, from: s.from }] }))
-    toast('success', 'Added to queue')
+    toast('success', '已加入播放队列')
   },
   removeQueueAt: (index) => set((s) => ({ queue: s.queue.filter((_, i) => i !== index) })),
   moveInQueue: (from, to) => set((s) => {

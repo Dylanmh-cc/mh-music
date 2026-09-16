@@ -84,11 +84,11 @@ function loadSdk(): Promise<NonNullable<Window['NetEaseCloudMusic']>> {
     el.async = true
     el.onload = () => {
       const sdk = window.NetEaseCloudMusic
-      if (!sdk) { reject(new Error('the SDK loaded but did not register itself')); return }
+      if (!sdk) { reject(new Error('SDK 已加载但没有注册自身')); return }
       sdk.init?.({ appId: getConfig().appId })
       resolve(sdk)
     }
-    el.onerror = () => reject(new Error('the SDK script could not be loaded'))
+    el.onerror = () => reject(new Error('SDK 脚本无法加载'))
     document.head.appendChild(el)
   })
   return sdkPromise
@@ -126,7 +126,7 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
       ...(init.headers ?? {}),
     },
   })
-  if (!res.ok) throw new Error(`endpoint responded ${res.status}`)
+  if (!res.ok) throw new Error(`后端返回 ${res.status}`)
   return (await res.json()) as T
 }
 
@@ -172,7 +172,7 @@ function normalisePlaylists(raw: unknown): NeteasePlaylist[] {
   if (!Array.isArray(list)) return []
   return list.map((p: any) => ({
     id: String(p?.id ?? p?.playlistId ?? ''),
-    name: String(p?.name ?? p?.title ?? 'Playlist'),
+    name: String(p?.name ?? p?.title ?? '歌单'),
     coverUrl: p?.coverUrl ?? p?.coverImgUrl ?? p?.picUrl,
     trackCount: typeof p?.trackCount === 'number' ? p.trackCount : p?.tracks?.length,
   })).filter((p) => p.id)
@@ -219,7 +219,7 @@ export async function importPlaylist(pl: NeteasePlaylist): Promise<{ matched: nu
   const created = lib.createPlaylist(pl.name, matched, pl.coverUrl)
   if (created && missing.length) {
     // the same contract as the file importer: nothing is silently dropped
-    toast('info', `“${pl.name}”: ${matched.length} matched, ${missing.length} not in your library.`)
+    toast('info', `「${pl.name}」:${matched.length} 首已匹配,${missing.length} 首不在你的音乐库中。`)
   }
   return { matched: matched.length, missing: missing.length }
 }

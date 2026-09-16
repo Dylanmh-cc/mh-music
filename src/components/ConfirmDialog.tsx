@@ -42,7 +42,7 @@ export function ConfirmDialog() {
           <button
             className="absolute inset-0 cursor-default bg-black/55 backdrop-blur-md"
             onClick={close}
-            aria-label="Cancel"
+            aria-label="取消"
             tabIndex={-1}
           />
           <motion.div
@@ -96,7 +96,7 @@ export function ConfirmDialog() {
                 className="lg-btn px-6 py-3 text-[13.5px] font-medium"
                 onClick={close}
               >
-                {spec.cancelLabel ?? 'Cancel'}
+                {spec.cancelLabel ?? '取消'}
               </button>
               <button
                 ref={confirmRef}
@@ -109,7 +109,7 @@ export function ConfirmDialog() {
                 } : undefined}
                 onClick={() => { spec.onConfirm(); close() }}
               >
-                {spec.confirmLabel ?? 'Confirm'}
+                {spec.confirmLabel ?? '确认'}
               </button>
             </div>
           </motion.div>

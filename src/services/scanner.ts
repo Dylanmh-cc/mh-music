@@ -18,7 +18,7 @@ export interface ScanResult {
 }
 
 export function albumKey(albumArtist: string | undefined, artist: string | undefined, name: string): string {
-  return `${(albumArtist || artist || 'Unknown Artist').toLowerCase()}|${(name || 'Unknown Album').toLowerCase()}`
+  return `${(albumArtist || artist || '未知歌手').toLowerCase()}|${(name || '未知专辑').toLowerCase()}`
 }
 
 export function albumIdFor(key: string): string { return `al_${hashStr(key).toString(36)}` }
@@ -107,8 +107,8 @@ async function finalizeScan(entries: Entry[], folder: MusicFolder, lrcs: Map<str
     try { tags = await readTags(file) } catch { /* untagged */ }
     const fname = parseFromFilename(file.name)
     const title = tags.title || fname.title || file.name
-    const artist = tags.artist || fname.artist || 'Unknown Artist'
-    const albumName = tags.album || 'Unknown Album'
+    const artist = tags.artist || fname.artist || '未知歌手'
+    const albumName = tags.album || '未知专辑'
     const albumArtist = tags.albumArtist || artist
     const aKey = albumKey(albumArtist, artist, albumName)
     const aId = albumIdFor(aKey)

@@ -6,15 +6,15 @@ import { IconHome, IconAlbum, IconArtist, IconNote, IconList, IconHeart, IconClo
 import { cn } from '../../lib/format'
 
 const MAIN: Array<{ id: ViewID; label: string; icon: (p: { size?: number }) => JSX.Element }> = [
-  { id: 'home', label: 'Home', icon: IconHome },
-  { id: 'browse', label: 'Browse', icon: IconSparkle },
-  { id: 'albums', label: 'Albums', icon: IconAlbum },
-  { id: 'artists', label: 'Artists', icon: IconArtist },
-  { id: 'songs', label: 'Songs', icon: IconNote },
-  { id: 'playlists', label: 'Playlists', icon: IconList },
-  { id: 'favorites', label: 'Favorites', icon: IconHeart },
-  { id: 'recent', label: 'Recently Played', icon: IconClock },
-  { id: 'folders', label: 'Folders', icon: IconFolder },
+  { id: 'home', label: '首页', icon: IconHome },
+  { id: 'browse', label: '浏览', icon: IconSparkle },
+  { id: 'albums', label: '专辑', icon: IconAlbum },
+  { id: 'artists', label: '艺术家', icon: IconArtist },
+  { id: 'songs', label: '歌曲', icon: IconNote },
+  { id: 'playlists', label: '歌单', icon: IconList },
+  { id: 'favorites', label: '收藏', icon: IconHeart },
+  { id: 'recent', label: '最近播放', icon: IconClock },
+  { id: 'folders', label: '文件夹', icon: IconFolder },
 ]
 
 /**
@@ -56,22 +56,22 @@ export function Sidebar() {
   return (
     <nav
       className={cn('flex shrink-0 flex-col pb-32 pt-1 transition-[width] duration-300', collapsed ? 'w-[72px] px-2.5' : 'w-[224px] px-4')}
-      aria-label="Library navigation"
+      aria-label="音乐库导航"
     >
       <div className={cn('mb-7 flex items-center gap-2.5', collapsed && 'flex-col gap-3')}>
         <MHLogo size={36} />
         {!collapsed && (
           <div className="min-w-0">
             <div className="truncate text-[16px] font-semibold leading-none tracking-wide">MH Music</div>
-            <div className="mt-1 text-[10px] uppercase tracking-[0.3em]" style={{ color: 'var(--c-ink-faint)' }}>Vinyl Space</div>
+            <div className="mt-1 text-[10px] uppercase tracking-[0.3em]" style={{ color: 'var(--c-ink-faint)' }}>黑胶空间</div>
           </div>
         )}
         {!collapsed && <span className="flex-1" />}
         <button
           className="icon-btn h-8 w-8 shrink-0"
           onClick={toggleRail}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'}
+          title={collapsed ? '展开侧边栏' : '收起侧边栏'}
         >
           {collapsed ? <IconForward size={15} /> : <IconBack size={15} />}
         </button>
@@ -82,7 +82,7 @@ export function Sidebar() {
       </div>
 
       <div className="mt-3 space-y-1">
-        {item('settings', 'Settings', IconSettings)}
+        {item('settings', '设置', IconSettings)}
         {user && (
           <div
             className={cn('mt-1 flex items-center gap-2.5 px-3 text-[13px]', collapsed && 'justify-center px-0')}

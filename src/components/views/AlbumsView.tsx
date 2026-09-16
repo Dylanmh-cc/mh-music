@@ -21,7 +21,7 @@ export function AlbumsView() {
   const mode = useViewMode('albums')
 
   if (!albums.length) {
-    return <EmptyState icon={<IconAlbum size={30} />} title="No albums yet." hint="Albums appear here once your library has music." />
+    return <EmptyState icon={<IconAlbum size={30} />} title="还没有专辑。" hint="音乐库有内容后,专辑会出现在这里。" />
   }
 
   const sorted = albums.slice().sort((a, b) => a.name.localeCompare(b.name))
@@ -33,20 +33,20 @@ export function AlbumsView() {
     const fav = lib.favorites.albums.includes(album.id)
     const r = el.getBoundingClientRect()
     ui.openCtx(r.left - 210, r.bottom + 6, [
-      { label: 'Open Album', action: () => ui.navigate('album', { albumId: album.id }) },
-      { label: 'Play Album', action: () => play(album) },
+      { label: '打开专辑', action: () => ui.navigate('album', { albumId: album.id }) },
+      { label: '播放专辑', action: () => play(album) },
       { sep: true },
-      { label: fav ? 'Remove from Favorites' : 'Add to Favorites', action: () => lib.toggleFavAlbum(album.id) },
+      { label: fav ? '取消收藏' : '加入收藏', action: () => lib.toggleFavAlbum(album.id) },
       { sep: true },
-      { label: 'Delete Album', danger: true, action: () => confirmDeleteAlbum(album) },
+      { label: '删除专辑', danger: true, action: () => confirmDeleteAlbum(album) },
     ])
   }
 
   return (
     <div className="mx-auto max-w-[1280px]">
       <SectionTitle
-        title="Albums"
-        hint={`${albums.length} albums in your collection`}
+        title="专辑"
+        hint={`收藏中共 ${albums.length} 张专辑`}
         action={<ViewModeToggle page="albums" />}
       />
 
@@ -67,7 +67,7 @@ export function AlbumsView() {
         <Stage3D
         items={albums}
         keyOf={(a) => a.id}
-        label="Album stage"
+        label="专辑舞台"
         thumbnailOf={(a) => a.coverUrl}
         cardWidth={320}
         stageHeight={560}
@@ -81,17 +81,17 @@ export function AlbumsView() {
           }
           return (
             <StageCardBody
-              artLabel={`Open ${album.name}`}
+              artLabel={`打开 ${album.name}`}
               art={<img src={album.coverUrl} alt="" loading="lazy" draggable={false} className="h-full w-full object-cover" />}
               title={album.name}
               subtitle={`${album.year ? `${album.year} · ` : ''}${album.artist}`}
-              sub2={`${album.songIds.length} track${album.songIds.length !== 1 ? 's' : ''}`}
+              sub2={`${album.songIds.length} 首`}
               onActivate={() => ui.navigate('album', { albumId: album.id })}
               badge={
                 playingThis && player.isPlaying ? (
                   <span className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded-full bg-black/55 px-2.5 py-1 backdrop-blur-md">
                     <span className="eq-bars" aria-hidden="true"><i /><i /><i /></span>
-                    <span className="track-stencil text-[9px] text-white/85">PLAYING</span>
+                    <span className="track-stencil text-[9px] text-white/85">播放中</span>
                   </span>
                 ) : undefined
               }
@@ -101,7 +101,7 @@ export function AlbumsView() {
                     onClick={play}
                     className="lg-btn lg-btn-primary grid h-10 w-10 cursor-pointer place-items-center"
                     role="button"
-                    aria-label={`Play ${album.name}`}
+                    aria-label={`播放 ${album.name}`}
                   >
                     <IconPlay size={16} />
                   </span>
@@ -109,7 +109,7 @@ export function AlbumsView() {
                     className={cn('icon-btn h-9 w-9', fav && 'active')}
                     style={{ color: fav ? 'var(--c-accent-2)' : undefined }}
                     onClick={(e) => { e.stopPropagation(); lib.toggleFavAlbum(album.id) }}
-                    aria-label={fav ? 'Remove album from favorites' : 'Add album to favorites'}
+                    aria-label={fav ? '取消收藏这张专辑' : '收藏这张专辑'}
                   >
                     {fav ? <IconHeartFill size={16} /> : <IconHeart size={16} />}
                   </button>
@@ -119,15 +119,15 @@ export function AlbumsView() {
                       e.stopPropagation()
                       const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
                       ui.openCtx(r.left - 210, r.bottom + 6, [
-                        { label: 'Open Album', action: () => ui.navigate('album', { albumId: album.id }) },
-                        { label: 'Play Album', action: play },
+                        { label: '打开专辑', action: () => ui.navigate('album', { albumId: album.id }) },
+                        { label: '播放专辑', action: play },
                         { sep: true },
-                        { label: fav ? 'Remove from Favorites' : 'Add to Favorites', action: () => lib.toggleFavAlbum(album.id) },
+                        { label: fav ? '取消收藏' : '加入收藏', action: () => lib.toggleFavAlbum(album.id) },
                         { sep: true },
-                        { label: 'Delete Album', danger: true, action: () => confirmDeleteAlbum(album) },
+                        { label: '删除专辑', danger: true, action: () => confirmDeleteAlbum(album) },
                       ])
                     }}
-                    aria-label={`More options for ${album.name}`}
+                    aria-label={`${album.name} 的更多选项`}
                   >
                     <IconMore size={15} />
                   </button>

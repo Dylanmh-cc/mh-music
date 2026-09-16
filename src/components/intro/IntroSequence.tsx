@@ -273,7 +273,7 @@ export function IntroSequence({ onDone, onLeaving }: { onDone: () => void; onLea
       transition={{ duration: phase === 'dissolve' ? 1.0 : 0.9, ease: 'easeInOut', delay: leaving ? 0.3 : 0 }}
       onClick={skip}
       role="presentation"
-      aria-label="Vinyl intro animation — click to skip"
+      aria-label="黑胶入场动画 —— 点击跳过"
     >
       {/* room haze + volumetric beam (opacity only — no blur animation) */}
       <div className="intro-haze" />
@@ -350,7 +350,7 @@ export function IntroSequence({ onDone, onLeaving }: { onDone: () => void; onLea
         transition={{ delay: 1.4 }}
         onClick={(e) => { e.stopPropagation(); skip() }}
       >
-        Skip Intro
+        跳过入场
       </motion.button>
 
       <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 z-[5]" style={{ width: '100%', height: '100%' }} />

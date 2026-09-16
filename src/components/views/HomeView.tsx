@@ -33,9 +33,9 @@ export function HomeView() {
     return (
       <EmptyState
         icon={<IconNote size={30} />}
-        title="Your library is empty."
-        hint="Add a music folder to get started, or explore the demo collection above."
-        action={<GlassButton primary onClick={() => navigate('folders')}>Add Music Folder</GlassButton>}
+        title="音乐库还是空的。"
+        hint="添加一个音乐文件夹即可开始,也可以先浏览上面的示例专辑。"
+        action={<GlassButton primary onClick={() => navigate('folders')}>添加音乐文件夹</GlassButton>}
       />
     )
   }
@@ -47,15 +47,15 @@ export function HomeView() {
       {recentlyAdded.length > 0 && (
         <>
           <SectionTitle
-            title="Recently Added"
-            hint="Freshly filed into the collection"
+            title="最近添加"
+            hint="刚刚归档到音乐库"
             action={<SeeAll onClick={() => navigate('albums')} />}
           />
           <AlbumGrid albums={recentlyAdded} />
         </>
       )}
 
-      <SectionTitle title="All Albums" hint={`${lib.albums.length} albums · A–Z`} />
+      <SectionTitle title="全部专辑" hint={`${lib.albums.length} 张专辑 · A–Z`} />
       <LetterIndex present={present} />
       <AlbumSections groups={groups} />
 
@@ -67,7 +67,7 @@ export function HomeView() {
 function SeeAll({ onClick }: { onClick: () => void }) {
   return (
     <button className="text-[12px] underline-offset-4 transition hover:underline" style={{ color: 'var(--c-ink-dim)' }} onClick={onClick}>
-      See all
+      查看全部
     </button>
   )
 }

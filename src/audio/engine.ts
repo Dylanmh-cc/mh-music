@@ -71,7 +71,7 @@ class AudioEngine {
     if (this.ready || this.simulated) return
     try {
       const Ctx = window.AudioContext ?? (window as any).webkitAudioContext
-      if (!Ctx) throw new Error('no webaudio')
+      if (!Ctx) throw new Error('不支持 Web Audio')
       this.ctx = new Ctx()
       const src = this.ctx.createMediaElementSource(this.el)
       this.analyser = this.ctx.createAnalyser()
@@ -180,7 +180,7 @@ class AudioEngine {
     if (this.el.readyState < 2) {
       await new Promise<void>((res, rej) => {
         const ok = () => { cleanup(); res() }
-        const fail = () => { cleanup(); rej(new Error('media load failed')) }
+        const fail = () => { cleanup(); rej(new Error('媒体加载失败')) }
         const cleanup = () => {
           this.el.removeEventListener('canplay', ok)
           this.el.removeEventListener('loadedmetadata', ok)

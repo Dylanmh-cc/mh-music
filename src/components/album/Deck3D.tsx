@@ -62,7 +62,7 @@ export function Deck3D({ cover, playing, accent, className }: {
       let renderer: import('three').WebGLRenderer
       try {
         renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' })
-        if (!renderer.getContext()) throw new Error('no webgl')
+        if (!renderer.getContext()) throw new Error('不支持 WebGL')
       } catch {
         setFailed(true)
         return

@@ -63,6 +63,33 @@ const tokenOf = (req) => (req.headers.authorization ?? '').replace(/^Bearer\s+/i
 createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return json(res, 204, {})
   const path = new URL(req.url, 'http://x').pathname
+
+  // Online lyrics proxy — upload a song and we look its words up for you, so
+  // users never have to ship a sidecar .lrc. Read-only; no auth, just a thin
+  // pass-through to the public LrcApi. Results are cached in the browser.
+  if (path === '/api/lyrics' && req.method === 'GET') {
+    const u = new URL(req.url, 'http://x')
+    const title = (u.searchParams.get('title') || '').trim()
+    const artist = (u.searchParams.get('artist') || '').trim()
+    const album = (u.searchParams.get('album') || '').trim()
+    if (!title) return json(res, 400, { error: 'title required' })
+    try {
+      const target = new URL('https://api.lrc.cx/lyrics')
+      target.searchParams.set('title', title)
+      if (artist) target.searchParams.set('artist', artist)
+      if (album) target.searchParams.set('album', album)
+      const upstream = await fetch(target, { signal: AbortSignal.timeout(15000) })
+      const text = await upstream.text()
+      // a usable LRC carries [mm:ss.xx] markers and is not a JSON error blob
+      if (upstream.ok && text && text.includes('[') && !text.trimStart().startsWith('{')) {
+        return json(res, 200, { lyrics: text })
+      }
+      return json(res, 200, { lyrics: null })
+    } catch (e) {
+      return json(res, 200, { lyrics: null, error: String((e && e.message) || e) })
+    }
+  }
+
   const db = await read()
 
   if (path === '/register' && req.method === 'POST') {

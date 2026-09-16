@@ -25,7 +25,7 @@ export function TopBar() {
     <header className="flex items-center gap-3 px-4 pt-4 md:px-6" role="toolbar" aria-label="Top bar">
       {!mobile && (
         <div className="flex gap-1">
-          <button className="icon-btn h-9 w-9 disabled:opacity-25" onClick={back} disabled={!canBack} aria-label="Go back">
+          <button className="icon-btn h-9 w-9 disabled:opacity-25" onClick={back} disabled={!canBack} aria-label="返回">
             <IconBack size={17} />
           </button>
           <button className="icon-btn h-9 w-9 opacity-25" disabled aria-label="Go forward">
@@ -40,7 +40,7 @@ export function TopBar() {
         aria-label="Search library (press /)"
       >
         <IconSearch size={16} />
-        <span style={{ color: 'var(--c-ink-faint)' }}>Search songs, artists, albums…</span>
+        <span style={{ color: 'var(--c-ink-faint)' }}>搜索歌曲、艺术家、专辑…</span>
         <span className="ml-auto hidden rounded-md border border-white/10 px-2 py-0.5 text-[11px] md:inline" style={{ color: 'var(--c-ink-faint)' }}>/</span>
       </button>
 
@@ -52,7 +52,7 @@ export function TopBar() {
               <button
                 onClick={() => toggleNowPlaying(true)}
                 className="glass-soft group flex items-center gap-2.5 rounded-full py-1 pl-1 pr-4 transition hover:bg-white/8"
-                aria-label="Open Now Playing"
+                aria-label="打开正在播放"
               >
                 <span className="relative h-8 w-8 shrink-0">
                   <span className={`vinyl vinyl-spin block h-full w-full ${isPlaying ? '' : 'vinyl-paused'}`} />
@@ -63,7 +63,7 @@ export function TopBar() {
                 </span>
               </button>
             )}
-            <button className="icon-btn h-9 w-9" onClick={() => toggleNowPlaying(true)} aria-label="Open full player">
+            <button className="icon-btn h-9 w-9" onClick={() => toggleNowPlaying(true)} aria-label="打开全屏播放器">
               <IconExpand size={16} />
             </button>
           </>
@@ -73,7 +73,7 @@ export function TopBar() {
             <button
               className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 transition hover:bg-white/6"
               aria-haspopup="menu"
-              aria-label={`Account menu for ${user.name}`}
+              aria-label={`${user.name} 的账户菜单`}
             >
               <span
                 className="grid h-8 w-8 place-items-center rounded-full text-[12px] font-bold"
@@ -88,7 +88,7 @@ export function TopBar() {
                 <IconSettings size={16} /> Settings
               </button>
               <button className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[13.5px] text-[#ff9a8a] hover:bg-[#ff9a8a]/10" onClick={logout} role="menuitem">
-                <IconLogout size={16} /> Log out
+                <IconLogout size={16} /> 退出登录
               </button>
             </div>
           </div>

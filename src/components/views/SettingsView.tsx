@@ -16,11 +16,22 @@ import type { BgMode, LyricsSettings, ParticleColor, ParticleDensity, ThemeMode,
 import { IconCheck } from '../icons'
 import { PlayModeButtons } from '../player/PlayModeButtons'
 
+/** Theme ids, spelled the way the picker above spells them. */
+const THEME_LABELS: Record<ThemeMode, string> = {
+  dynamic: '动态',
+  dark: '暗色',
+  black: '纯黑',
+  midnight: '午夜',
+  glass: '玻璃',
+  aurora: '极光',
+  sunset: '日落',
+}
+
 export function SettingsView() {
   return (
     <div className="mx-auto max-w-[760px] pb-10">
-      <h1 className="mb-2 mt-4 text-[26px] font-bold tracking-tight">Settings</h1>
-      <p className="mb-8 text-[13px]" style={{ color: 'var(--c-ink-dim)' }}>Everything is saved to your account, per browser.</p>
+      <h1 className="mb-2 mt-4 text-[26px] font-bold tracking-tight">设置</h1>
+      <p className="mb-8 text-[13px]" style={{ color: 'var(--c-ink-dim)' }}>所有设置都保存在你的账户下(按浏览器)。</p>
       <AppearanceSection />
       <AnimationSection />
       <AlbumSection />
@@ -51,7 +62,7 @@ function Card({ title, children, hint }: { title: string; children: React.ReactN
 
 function Row({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
-    <div className="flex items-center justify-between gap-6 py-3">
+    <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
       <div className="min-w-0">
         <div className="text-[14px]">{label}</div>
         {hint && <div className="mt-1 text-[12px]" style={{ color: 'var(--c-ink-faint)' }}>{hint}</div>}
@@ -88,14 +99,14 @@ function Segmented<T extends string>({ value, options, onChange, ariaLabel }: {
   value: T; options: Array<{ value: T; label: string }>; onChange: (v: T) => void; ariaLabel: string
 }) {
   return (
-    <div className="glass-soft flex rounded-full p-0.5" role="radiogroup" aria-label={ariaLabel}>
+    <div className="glass-soft flex max-w-full overflow-x-auto rounded-full p-0.5" role="radiogroup" aria-label={ariaLabel}>
       {options.map((o) => (
         <button
           key={o.value}
           role="radio"
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
-          className={cn('relative rounded-full px-3.5 py-2 text-[12.5px] transition-colors', value === o.value ? 'font-medium text-[var(--c-ink)]' : 'text-[var(--c-ink-faint)] hover:text-white')}
+          className={cn('relative shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-[12.5px] transition-colors', value === o.value ? 'font-medium text-[var(--c-ink)]' : 'text-[var(--c-ink-faint)] hover:text-white')}
         >
           {value === o.value && <motion.span layoutId={`seg-${ariaLabel}`} className="absolute inset-0 rounded-full bg-white/12" style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.14)' }} />}
           <span className="relative">{o.label}</span>
@@ -109,7 +120,7 @@ function Slider({ value, min, max, step, onChange, label, format }: {
   value: number; min: number; max: number; step: number; onChange: (v: number) => void; label: string; format?: (v: number) => string
 }) {
   return (
-    <div className="flex w-[248px] items-center gap-3">
+    <div className="flex w-full items-center gap-3 sm:w-[248px]">
       <input
         type="range"
         min={min}
@@ -136,27 +147,27 @@ function AccountSection() {
   const [msg, setMsg] = useState('')
 
   return (
-    <Card title="Account" hint={`Signed in as ${user?.name} (${user?.email})`}>
+    <Card title="账户" hint={`已登录为 ${user?.name}(${user?.email})`}>
       <div className="flex items-center gap-2">
-        <input type="password" placeholder="Current password" value={cur} onChange={(e) => setCur(e.target.value)} className="w-[150px] rounded-xl bg-white/5 px-3 py-2 text-[12.5px] outline-none placeholder:text-white/25" aria-label="Current password" />
-        <input type="password" placeholder="New password" value={next} onChange={(e) => setNext(e.target.value)} className="w-[150px] rounded-xl bg-white/5 px-3 py-2 text-[12.5px] outline-none placeholder:text-white/25" aria-label="New password" />
+        <input type="password" placeholder="当前密码" value={cur} onChange={(e) => setCur(e.target.value)} className="w-full min-w-[150px] flex-1 rounded-xl bg-white/5 px-3 py-2 text-[12.5px] outline-none placeholder:text-white/25 sm:w-[150px] sm:flex-none" aria-label="当前密码" />
+        <input type="password" placeholder="新密码" value={next} onChange={(e) => setNext(e.target.value)} className="w-full min-w-[150px] flex-1 rounded-xl bg-white/5 px-3 py-2 text-[12.5px] outline-none placeholder:text-white/25 sm:w-[150px] sm:flex-none" aria-label="新密码" />
         <button
           className="lg-btn px-4 py-2 text-[12.5px]"
           onClick={async () => {
             setMsg('')
             try {
               await changePassword(user!.id, cur, next)
-              setMsg('Password updated.')
+              setMsg('密码已更新。')
               setCur(''); setNext('')
             } catch (e: any) { setMsg(e.message) }
           }}
         >
-          Update
+          更新
         </button>
         {msg && <span className="text-[11.5px]" style={{ color: 'var(--c-accent-2)' }}>{msg}</span>}
       </div>
-      <Row label="Log out of this device">
-        <button className="lg-btn px-4 py-2 text-[12.5px]" onClick={logout}>Log out</button>
+      <Row label="退出这台设备的登录">
+        <button className="lg-btn px-4 py-2 text-[12.5px]" onClick={logout}>退出登录</button>
       </Row>
     </Card>
   )
@@ -165,36 +176,36 @@ function AccountSection() {
 function AppearanceSection() {
   const s = useSettingsStore()
   return (
-    <Card title="Appearance">
-      <Row label="Theme" hint="Dynamic colors follow the current album’s artwork">
+    <Card title="外观">
+      <Row label="主题" hint="动态配色跟随当前专辑的封面">
         <Segmented<ThemeMode>
           ariaLabel="theme"
           value={s.settings.theme}
           onChange={(v) => { s.setSetting('theme', v); if (v !== 'dynamic') s.setSetting('dynamicColors', false); else s.setSetting('dynamicColors', true) }}
           options={[
-            { value: 'dynamic', label: 'Dynamic' },
-            { value: 'dark', label: 'Dark' },
-            { value: 'black', label: 'Black' },
-            { value: 'midnight', label: 'Midnight' },
-            { value: 'glass', label: 'Glass' },
+            { value: 'dynamic', label: '动态' },
+            { value: 'dark', label: '暗色' },
+            { value: 'black', label: '纯黑' },
+            { value: 'midnight', label: '午夜' },
+            { value: 'glass', label: '玻璃' },
           ]}
         />
       </Row>
-      <Row label="Dynamic album colors" hint="Repaint the environment from each album’s palette">
-        <Toggle on={s.settings.dynamicColors} onChange={(v) => s.setSetting('dynamicColors', v)} label="Dynamic album colors" />
+      <Row label="动态专辑配色" hint="用每张专辑的色板重新绘制环境">
+        <Toggle on={s.settings.dynamicColors} onChange={(v) => s.setSetting('dynamicColors', v)} label="动态专辑配色" />
       </Row>
-      <Row label="Music landscape" hint="The playback page raises a block terrain out of the track — this is the only visualiser, and it is always album-coloured.">
-        <span className="text-[12.5px]" style={{ color: 'var(--c-ink-faint)' }}>Voxel landscape · on</span>
+      <Row label="音乐地貌" hint="播放页会从曲目中升起方块地形 —— 这是唯一的可视化效果,配色始终取自当前专辑。">
+        <span className="text-[12.5px]" style={{ color: 'var(--c-ink-faint)' }}>方块地形 · 已开启</span>
       </Row>
-      <Row label="Landscape colour" hint="Random gives every block its own scattered colour; Album Cover draws them from the current artwork.">
+      <Row label="地貌配色" hint="随机:每个方块各自散色;专辑封面:全部取自当前封面。">
         <Segmented<ParticleColor>
-          ariaLabel="landscape colour"
+          ariaLabel="地貌配色"
           value={s.settings.particleColor}
           onChange={(v) => s.setSetting('particleColor', v)}
           options={PARTICLE_COLOR_LABELS.map((c) => ({ value: c.id, label: c.label }))}
         />
       </Row>
-      <Row label="Playback mode" hint="Sequential, shuffle and repeat-one are exclusive">
+      <Row label="播放模式" hint="顺序、随机与单曲循环三者互斥">
         <PlayModeButtons size={32} />
       </Row>
     </Card>
@@ -207,36 +218,36 @@ function AlbumSection() {
   const g = s.settings.layouts.global
   const albumCount = useLibraryStore((st) => st.albums.length)
   return (
-    <Card title="Album" hint="Position, rotation, scale, depth, shadow and reflection — global or per album.">
-      <Row label="Card scale" hint="Global multiplier applied to every 3D album sleeve">
+    <Card title="专辑" hint="位置、旋转、缩放、深度、阴影与倒影 —— 可全局,也可单张专辑。">
+      <Row label="卡片缩放" hint="应用到每个 3D 专辑封套的全局倍率">
         <Slider
-          label="Album scale" value={g.scale} min={0.7} max={1.4} step={0.01}
+          label="专辑缩放" value={g.scale} min={0.7} max={1.4} step={0.01}
           onChange={(v) => s.setLayoutGlobal({ scale: v })}
           format={(v) => `${v.toFixed(2)}×`}
         />
       </Row>
-      <Row label="Shadow depth" hint="How far the sleeve floats above the wall">
+      <Row label="阴影深度" hint="封套浮在墙面上方的高度">
         <Slider
-          label="Album shadow" value={g.shadow} min={0} max={1.2} step={0.05}
+          label="专辑阴影" value={g.shadow} min={0} max={1.2} step={0.05}
           onChange={(v) => s.setLayoutGlobal({ shadow: v })}
           format={(v) => v.toFixed(2)}
         />
       </Row>
-      <Row label="Floor reflection" hint="The sleeve’s mirrored ghost below the card">
+      <Row label="地面倒影" hint="卡片下方镜像的封套虚影">
         <Slider
-          label="Album reflection" value={g.reflection} min={0} max={1} step={0.05}
+          label="专辑倒影" value={g.reflection} min={0} max={1} step={0.05}
           onChange={(v) => s.setLayoutGlobal({ reflection: v })}
           format={(v) => `${Math.round(v * 100)}%`}
         />
       </Row>
-      <Row label="Tune a single album" hint={`${albumCount} albums in your library`}>
+      <Row label="单独调整某张专辑" hint={`音乐库中共 ${albumCount} 张专辑`}>
         <div className="flex gap-2">
-          <button className="lg-btn px-4 py-2 text-[12.5px]" onClick={() => useUiStore.getState().navigate('albums')}>Open album wall</button>
+          <button className="lg-btn px-4 py-2 text-[12.5px]" onClick={() => useUiStore.getState().navigate('albums')}>打开专辑墙</button>
           <button
             className="lg-btn px-4 py-2 text-[12.5px]"
-            onClick={() => { s.resetLayout(); toast('info', 'Global album layout reset.') }}
+            onClick={() => { s.resetLayout(); toast('info', '专辑布局已重置。') }}
           >
-            Reset global
+            重置为全局
           </button>
         </div>
       </Row>
@@ -247,20 +258,20 @@ function AlbumSection() {
 function AnimationSection() {
   const s = useSettingsStore()
   return (
-    <Card title="Animation">
-      <Row label="Interface animations" hint="Ambient drift, tilt, breathing and hover blur. Off also calms every stage effect; your system’s reduce-motion preference is always respected.">
-        <Toggle on={s.settings.animations} onChange={(v) => s.setSetting('animations', v)} label="Animations" />
+    <Card title="动画">
+      <Row label="界面动画" hint="环境漂浮、倾斜、呼吸与悬停模糊。关闭后所有舞台效果也会平静下来;系统「减少动态效果」的偏好始终会被尊重。">
+        <Toggle on={s.settings.animations} onChange={(v) => s.setSetting('animations', v)} label="动画" />
       </Row>
-      <Row label="Living background" hint="Starfield, molecule network, beat ripples and the bass ribbon">
-        <Toggle on={s.settings.ambientStage} onChange={(v) => s.setSetting('ambientStage', v)} label="Ambient stage" />
+      <Row label="动态背景" hint="星空、分子网络、鼓点涟漪与低频光带">
+        <Toggle on={s.settings.ambientStage} onChange={(v) => s.setSetting('ambientStage', v)} label="环境舞台" />
       </Row>
-      <Row label="Street texture" hint="Halftone spray, stencil marks and tape edges in the room">
-        <Toggle on={s.settings.streetTexture} onChange={(v) => s.setSetting('streetTexture', v)} label="Street texture" />
+      <Row label="街头质感" hint="房间里的半调喷绘、模板印记与胶带边缘">
+        <Toggle on={s.settings.streetTexture} onChange={(v) => s.setSetting('streetTexture', v)} label="街头质感" />
       </Row>
-      <Row label="Skip intro animation" hint="Skip the turntable opening on this device">
-        <Toggle on={s.settings.skipIntro} onChange={(v) => s.setSetting('skipIntro', v)} label="Skip intro" />
+      <Row label="跳过入场动画" hint="在这台设备上跳过唱片机开场">
+        <Toggle on={s.settings.skipIntro} onChange={(v) => s.setSetting('skipIntro', v)} label="跳过入场" />
       </Row>
-      <Row label="Replay intro" hint="Play the turntable opening again">
+      <Row label="重新播放入场动画" hint="再次播放唱片机开场动画">
         <button
           className="lg-btn px-4 py-2 text-[12.5px]"
           onClick={() => {
@@ -268,7 +279,7 @@ function AnimationSection() {
             useUiStore.getState().navigate('home')
           }}
         >
-          Replay intro
+          重新播放入场动画
         </button>
       </Row>
     </Card>
@@ -280,49 +291,49 @@ function LyricsSection() {
   const L = s.settings.lyrics
   const set = s.setLyric
   return (
-    <Card title="Lyrics" hint="Lyrics drift with the music — tune their presence here.">
-      <Row label="Font size">
-        <Slider label="Lyrics size" value={L.size} min={13} max={34} step={1} onChange={(v) => set('size', v)} format={(v) => `${v}px`} />
+    <Card title="歌词" hint="歌词随音乐流动 —— 在这里调整它的存在感。">
+      <Row label="字号">
+        <Slider label="歌词字号" value={L.size} min={13} max={34} step={1} onChange={(v) => set('size', v)} format={(v) => `${v}px`} />
       </Row>
-      <Row label="Opacity">
-        <Slider label="Lyrics opacity" value={L.opacity} min={0.3} max={1} step={0.05} onChange={(v) => set('opacity', v)} format={(v) => `${Math.round(v * 100)}%`} />
+      <Row label="不透明度">
+        <Slider label="歌词不透明度" value={L.opacity} min={0.3} max={1} step={0.05} onChange={(v) => set('opacity', v)} format={(v) => `${Math.round(v * 100)}%`} />
       </Row>
-      <Row label="Visible lines">
-        <Segmented<string> ariaLabel="lyrics lines" value={String(L.lines)} onChange={(v) => set('lines', parseInt(v, 10))} options={[1, 3, 5, 7].map((n) => ({ value: String(n), label: String(n) }))} />
+      <Row label="显示行数">
+        <Segmented<string> ariaLabel="歌词行数" value={String(L.lines)} onChange={(v) => set('lines', parseInt(v, 10))} options={[1, 3, 5, 7].map((n) => ({ value: String(n), label: String(n) }))} />
       </Row>
-      <Row label="Position in the room" hint="Where the lyric column sits relative to the record">
-        <Segmented<LyricsSettings['side']> ariaLabel="lyrics side" value={L.side} onChange={(v) => set('side', v)} options={[{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }]} />
+      <Row label="在空间中的位置" hint="歌词列相对于唱片的位置">
+        <Segmented<LyricsSettings['side']> ariaLabel="歌词位置" value={L.side} onChange={(v) => set('side', v)} options={[{ value: 'left', label: '靠左' }, { value: 'center', label: '居中' }, { value: 'right', label: '靠右' }]} />
       </Row>
-      <Row label="Line transition" hint="How one line gives way to the next">
-        <Segmented<LyricsSettings['motion']> ariaLabel="lyrics motion" value={L.motion} onChange={(v) => set('motion', v)} options={[{ value: 'fade', label: 'Fade' }, { value: 'slide', label: 'Slide' }, { value: 'blur', label: 'Blur' }, { value: 'scale', label: 'Scale' }]} />
+      <Row label="行切换" hint="一行让位给下一行的方式">
+        <Segmented<LyricsSettings['motion']> ariaLabel="歌词动效" value={L.motion} onChange={(v) => set('motion', v)} options={[{ value: 'fade', label: '淡入淡出' }, { value: 'slide', label: '滑动' }, { value: 'blur', label: '模糊' }, { value: 'scale', label: '缩放' }]} />
       </Row>
-      <Row label="Translation" hint="Shows the translated line under the one being sung, when the file carries it">
-        <Toggle on={L.translation} onChange={(v) => set('translation', v)} label="Lyric translation" />
+      <Row label="翻译" hint="当歌词文件带有翻译时,在当前行下方显示译文">
+        <Toggle on={L.translation} onChange={(v) => set('translation', v)} label="歌词翻译" />
       </Row>
-      <Row label="Next line" hint="Off leaves only the line being sung in the window">
-        <Toggle on={L.showNext} onChange={(v) => set('showNext', v)} label="Show the next line" />
+      <Row label="下一行" hint="关闭后窗口里只保留正在唱的这一行">
+        <Toggle on={L.showNext} onChange={(v) => set('showNext', v)} label="显示下一行" />
       </Row>
-      <Row label="Position">
-        <Segmented<LyricsSettings['mode']> ariaLabel="lyrics mode" value={L.mode} onChange={(v) => set('mode', v)} options={[{ value: 'floating', label: 'Floating' }, { value: 'centered', label: 'Centered' }, { value: 'bottom', label: 'Bottom' }]} />
+      <Row label="位置">
+        <Segmented<LyricsSettings['mode']> ariaLabel="歌词模式" value={L.mode} onChange={(v) => set('mode', v)} options={[{ value: 'floating', label: '浮动' }, { value: 'centered', label: '居中' }, { value: 'bottom', label: '底部' }]} />
       </Row>
-      <Row label="Alignment">
-        <Segmented<LyricsSettings['align']> ariaLabel="lyrics align" value={L.align} onChange={(v) => set('align', v)} options={[{ value: 'left', label: 'Left' }, { value: 'center', label: 'Center' }, { value: 'right', label: 'Right' }]} />
+      <Row label="对齐方式">
+        <Segmented<LyricsSettings['align']> ariaLabel="歌词对齐" value={L.align} onChange={(v) => set('align', v)} options={[{ value: 'left', label: '靠左' }, { value: 'center', label: '居中' }, { value: 'right', label: '靠右' }]} />
       </Row>
-      <Row label="Line spacing">
-        <Slider label="Lyrics gap" value={L.gap} min={4} max={40} step={1} onChange={(v) => set('gap', v)} format={(v) => `${v}px`} />
+      <Row label="行间距">
+        <Slider label="歌词行距" value={L.gap} min={4} max={40} step={1} onChange={(v) => set('gap', v)} format={(v) => `${v}px`} />
       </Row>
-      <Row label="Animation speed">
-        <Slider label="Lyrics speed" value={L.speed} min={0.5} max={2} step={0.1} onChange={(v) => set('speed', v)} format={(v) => `${v.toFixed(1)}×`} />
+      <Row label="动画速度">
+        <Slider label="歌词速度" value={L.speed} min={0.5} max={2} step={0.1} onChange={(v) => set('speed', v)} format={(v) => `${v.toFixed(1)}×`} />
       </Row>
-      <Row label="Lyrics animation" hint="Word-by-word fill sweeps across the line as it is sung">
-        <Toggle on={L.animate} onChange={(v) => set('animate', v)} label="Lyrics animation" />
+      <Row label="歌词动画" hint="随演唱逐字扫过整行填充">
+        <Toggle on={L.animate} onChange={(v) => set('animate', v)} label="歌词动画" />
       </Row>
-      <Row label="Highlight color">
+      <Row label="高亮颜色">
         <div className="flex items-center gap-2">
           {['#ffffff', 'var(--c-accent-2)', 'var(--c-accent)', '#ffd166', '#ff9ad5', '#9dffb0'].map((c) => (
             <button
               key={c}
-              aria-label={`Highlight ${c}`}
+              aria-label={`高亮色 ${c}`}
               onClick={() => set('highlight', c)}
               className="grid h-6 w-6 place-items-center rounded-full border border-white/20"
               style={{ background: c.startsWith('var') ? getComputedStyle(document.documentElement).getPropertyValue(c.slice(4, -1)).trim() || '#fff' : c }}
@@ -332,12 +343,12 @@ function LyricsSection() {
           ))}
         </div>
       </Row>
-      <Row label="Reset lyrics settings">
+      <Row label="重置歌词设置">
         <button
           className="lg-btn px-4 py-2 text-[12.5px]"
-          onClick={() => { (Object.keys(DEFAULT_LYRICS) as Array<keyof LyricsSettings>).forEach((k) => set(k, DEFAULT_LYRICS[k])); toast('info', 'Lyrics settings restored.') }}
+          onClick={() => { (Object.keys(DEFAULT_LYRICS) as Array<keyof LyricsSettings>).forEach((k) => set(k, DEFAULT_LYRICS[k])); toast('info', '歌词设置已恢复。') }}
         >
-          Reset Lyrics
+          重置歌词设置
         </button>
       </Row>
     </Card>
@@ -348,15 +359,15 @@ function PlaybackSection() {
   const s = useSettingsStore()
   const player = usePlayerStore()
   return (
-    <Card title="Playback">
-      <Row label="Default volume" hint="Applied on load and remembered across sessions">
-        <Slider label="Volume" value={s.settings.volume} min={0} max={1} step={0.01} onChange={(v) => player.setVolume(v)} format={(v) => `${Math.round(v * 100)}%`} />
+    <Card title="播放">
+      <Row label="默认音量" hint="载入时应用,并在会话之间记住">
+        <Slider label="音量" value={s.settings.volume} min={0} max={1} step={0.01} onChange={(v) => player.setVolume(v)} format={(v) => `${Math.round(v * 100)}%`} />
       </Row>
-      <Row label="Crossfade" hint="Dips the outgoing track and brings the next one up when you change songs">
-        <Slider label="Crossfade" value={s.settings.crossfade} min={0} max={6} step={0.5} onChange={(v) => s.setSetting('crossfade', v)} format={(v) => (v === 0 ? 'Off' : `${v.toFixed(1)}s`)} />
+      <Row label="交叉淡入淡出" hint="切歌时压低正在结束的曲目,并淡入下一首">
+        <Slider label="Crossfade" value={s.settings.crossfade} min={0} max={6} step={0.5} onChange={(v) => s.setSetting('crossfade', v)} format={(v) => (v === 0 ? '关闭' : `${v.toFixed(1)}s`)} />
       </Row>
-      <Row label="Volume glide" hint="Smooth the volume ramp when a track starts">
-        <Toggle on={s.settings.smoothVolume} onChange={(v) => s.setSetting('smoothVolume', v)} label="Volume glide" />
+      <Row label="音量渐入" hint="曲目开始时让音量平滑爬升">
+        <Toggle on={s.settings.smoothVolume} onChange={(v) => s.setSetting('smoothVolume', v)} label="音量渐入" />
       </Row>
     </Card>
   )
@@ -369,8 +380,8 @@ function VisualsSection() {
   const set = s.setVisual
 
   return (
-    <Card title="Visuals" hint="How the music space looks, and how strongly it answers the track.">
-      <Row label="Visualizer mode" hint={VISUALIZER_MODE_LABELS.find((m) => m.id === s.settings.visualizerMode)?.hint}>
+    <Card title="视觉效果" hint="音乐空间长什么样,以及它回应曲目的强度。">
+      <Row label="可视化模式" hint={VISUALIZER_MODE_LABELS.find((m) => m.id === s.settings.visualizerMode)?.hint}>
         <div className="flex max-w-[420px] flex-wrap justify-end gap-1.5">
           {VISUALIZER_MODE_LABELS.map((m) => (
             <button
@@ -389,52 +400,52 @@ function VisualsSection() {
           ))}
         </div>
       </Row>
-      <Row label="Visualizer colour" hint="Album draws from the current artwork; Random gives every element its own hue.">
+      <Row label="可视化配色" hint="专辑:取自当前封面;随机:每个元素各自取色。">
         <Segmented<ParticleColor>
-          ariaLabel="visualizer colour"
+          ariaLabel="可视化配色"
           value={s.settings.particleColor}
           onChange={(val) => s.setSetting('particleColor', val)}
           options={PARTICLE_COLOR_LABELS.map((c) => ({ value: c.id, label: c.label }))}
         />
       </Row>
-      <Row label="Player background" hint={BG_MODE_LABELS.find((b) => b.id === s.settings.bgMode)?.hint}>
+      <Row label="播放器背景" hint={BG_MODE_LABELS.find((b) => b.id === s.settings.bgMode)?.hint}>
         <Segmented<BgMode>
-          ariaLabel="player background"
+          ariaLabel="播放器背景"
           value={s.settings.bgMode}
           onChange={(val) => s.setBgMode(val)}
           options={BG_MODE_LABELS.map((b) => ({ value: b.id, label: b.label }))}
         />
       </Row>
-      <Row label="Detail" hint="How finely the visualiser is resolved; higher needs a stronger GPU">
+      <Row label="细节" hint="可视化效果的分辨率;越高越需要更强的显卡">
         <Segmented<ParticleDensity>
-          ariaLabel="visualizer detail"
+          ariaLabel="可视化细节"
           value={v.density}
           onChange={(val) => set('density', val)}
-          options={[{ value: 'low', label: 'Low' }, { value: 'medium', label: 'Medium' }, { value: 'high', label: 'High' }, { value: 'ultra', label: 'Ultra' }]}
+          options={[{ value: 'low', label: '低' }, { value: 'medium', label: '中' }, { value: 'high', label: '高' }, { value: 'ultra', label: '极高' }]}
         />
       </Row>
-      <Row label="Performance mode" hint={PERF_MODE_LABELS.find((p) => p.id === v.perf)?.hint}>
+      <Row label="性能模式" hint={PERF_MODE_LABELS.find((p) => p.id === v.perf)?.hint}>
         <Segmented<PerfMode>
-          ariaLabel="performance mode"
+          ariaLabel="性能模式"
           value={v.perf}
           onChange={(val) => set('perf', val)}
           options={PERF_MODE_LABELS.map((p) => ({ value: p.id, label: p.label }))}
         />
       </Row>
-      <Row label="Music sensitivity" hint="How hard the analyser pushes the visuals">
-        <Slider label="Sensitivity" value={v.sensitivity} min={0} max={1} step={0.05} onChange={(val) => set('sensitivity', val)} format={(val) => `${Math.round(val * 100)}%`} />
+      <Row label="音乐灵敏度" hint="分析器推动视觉效果的强度">
+        <Slider label="音乐灵敏度" value={v.sensitivity} min={0} max={1} step={0.05} onChange={(val) => set('sensitivity', val)} format={(val) => `${Math.round(val * 100)}%`} />
       </Row>
-      <Row label="Beat response" hint="How readily drum hits register as beats">
-        <Slider label="Beat response" value={v.beatResponse} min={0} max={1} step={0.05} onChange={(val) => set('beatResponse', val)} format={(val) => `${Math.round(val * 100)}%`} />
+      <Row label="鼓点灵敏度" hint="鼓点被识别为节拍的难易程度">
+        <Slider label="鼓点灵敏度" value={v.beatResponse} min={0} max={1} step={0.05} onChange={(val) => set('beatResponse', val)} format={(val) => `${Math.round(val * 100)}%`} />
       </Row>
-      <Row label="Record size" hint="The sleeve and its record scale together, so they always match">
-        <Slider label="Record size" value={v.vinylSize} min={0.5} max={2} step={0.05} onChange={(val) => set('vinylSize', val)} format={(val) => `${Math.round(val * 100)}%`} />
+      <Row label="唱片尺寸" hint="封套与唱片一起缩放,始终匹配">
+        <Slider label="唱片尺寸" value={v.vinylSize} min={0.5} max={2} step={0.05} onChange={(val) => set('vinylSize', val)} format={(val) => `${Math.round(val * 100)}%`} />
       </Row>
-      <Row label="Background opacity" hint="How strongly the room shows through the visualisation">
-        <Slider label="Background opacity" value={v.bgOpacity} min={0} max={1} step={0.05} onChange={(val) => set('bgOpacity', val)} format={(val) => `${Math.round(val * 100)}%`} />
+      <Row label="背景不透明度" hint="房间透过可视化效果显示的程度">
+        <Slider label="背景不透明度" value={v.bgOpacity} min={0} max={1} step={0.05} onChange={(val) => set('bgOpacity', val)} format={(val) => `${Math.round(val * 100)}%`} />
       </Row>
-      <Row label="Glass blur" hint="Liquid-glass blur across the console, panels and player">
-        <Slider label="Glass blur" value={v.glassBlur} min={0} max={1} step={0.05} onChange={(val) => set('glassBlur', val)} format={(val) => `${Math.round(val * 100)}%`} />
+      <Row label="玻璃模糊" hint="控制台、面板与播放器上液态玻璃的模糊程度">
+        <Slider label="玻璃模糊" value={v.glassBlur} min={0} max={1} step={0.05} onChange={(val) => set('glassBlur', val)} format={(val) => `${Math.round(val * 100)}%`} />
       </Row>
     </Card>
   )
@@ -447,54 +458,54 @@ function LibrarySection() {
   const navigate = useUiStore((s) => s.navigate)
   const demo = lib.demoCount()
   return (
-    <Card title="Library" hint="Manage the folders, history and data behind your collection.">
-      <Row label="Music folders" hint={`${lib.folders.length} linked · ${lib.songs.length} tracks in your library`}>
-        <button className="lg-btn px-4 py-2 text-[12.5px]" onClick={() => navigate('folders')}>Manage folders</button>
+    <Card title="音乐库" hint="管理音乐库背后的文件夹、历史与数据。">
+      <Row label="音乐文件夹" hint={`已链接 ${lib.folders.length} 个 · 音乐库共 ${lib.songs.length} 首`}>
+        <button className="lg-btn px-4 py-2 text-[12.5px]" onClick={() => navigate('folders')}>管理文件夹</button>
       </Row>
       <Row
-        label="Demo music"
-        hint={demo ? `${demo} demo tracks are mixed into your library as a preview` : 'No demo tracks in your library'}
+        label="示例音乐"
+        hint={demo ? `${demo} 首示例曲目作为预览混在音乐库中` : '音乐库里没有示例曲目'}
       >
         <button
           className="lg-btn px-4 py-2 text-[12.5px] text-[#ff9a8a] disabled:cursor-not-allowed disabled:opacity-40"
           disabled={!demo}
           onClick={() => askConfirm({
-            title: 'Clear the demo music?',
-            body: `${demo} demo track${demo !== 1 ? 's' : ''} will be removed from your library, along with their albums and any favorites. Music you added yourself is untouched.`,
-            confirmLabel: 'Clear Demo Data',
+            title: '清除示例音乐?',
+            body: `${demo} 首示例曲目将从音乐库中移除,同时移除它们所在的专辑和相关收藏。你自己添加的音乐不受影响。`,
+            confirmLabel: '清除示例数据',
             danger: true,
             onConfirm: () => lib.clearDemo(),
           })}
         >
-          Clear Demo Data
+          清除示例数据
         </button>
       </Row>
-      <Row label="Listening history" hint={`${lib.history.length} play events recorded`}>
+      <Row label="播放历史" hint={`已记录 ${lib.history.length} 次播放`}>
         <button
           className="lg-btn px-4 py-2 text-[12.5px]"
           onClick={() => askConfirm({
-            title: 'Clear your listening history?',
-            body: 'Recently Played will be emptied. Your library and playlists are not affected.',
-            confirmLabel: 'Clear History',
+            title: '清除播放历史?',
+            body: '「最近播放」将被清空。音乐库与歌单不受影响。',
+            confirmLabel: '清除历史',
             danger: true,
-            onConfirm: () => { lib.clearHistory(); toast('info', 'Listening history cleared.') },
+            onConfirm: () => { lib.clearHistory(); toast('info', '播放历史已清除。') },
           })}
         >
-          Clear history
+          清除播放历史
         </button>
       </Row>
-      <Row label="Reset all settings" hint="Theme, lyrics, animations — back to first light. Your library is kept.">
+      <Row label="重置全部设置" hint="主题、歌词、动画 —— 全部回到初始状态,音乐库保留。">
         <button
           className="lg-btn px-4 py-2 text-[12.5px] text-[#ff9a8a]"
           onClick={() => askConfirm({
-            title: 'Reset all settings to defaults?',
-            body: 'Appearance, animation, lyrics and album layout return to their defaults. Your music library, favorites and playlists are kept.',
-            confirmLabel: 'Reset Settings',
+            title: '把所有设置恢复为默认?',
+            body: '外观、动画、歌词与专辑布局都会恢复为默认值。你的音乐库、收藏与歌单都会保留。',
+            confirmLabel: '重置设置',
             danger: true,
-            onConfirm: () => { reset(); toast('info', 'Settings reset.') },
+            onConfirm: () => { reset(); toast('info', '设置已重置。') },
           })}
         >
-          Reset Settings
+          重置设置
         </button>
       </Row>
     </Card>
@@ -503,21 +514,21 @@ function LibrarySection() {
 
 function ShortcutsSection() {
   const rows: Array<[string, string]> = [
-    ['Space', 'Play / Pause'],
-    ['← / →', 'Seek ±5s'],
-    ['Shift + ← / →', 'Previous / next track'],
-    ['↑ / ↓', 'Volume'],
-    ['M', 'Mute'],
-    ['S', 'Shuffle'],
-    ['R', 'Repeat mode'],
-    ['F', 'Favorite the current track'],
-    ['L', 'Open the lyrics space'],
-    ['V', 'Open the visualizer'],
-    ['/', 'Search'],
-    ['Esc', 'Close the overlay / leave the 3D space'],
+    ['空格', '播放 / 暂停'],
+    ['← / →', '快退 / 快进 ±5 秒'],
+    ['Shift + ← / →', '上一首 / 下一首'],
+    ['↑ / ↓', '音量'],
+    ['M', '静音'],
+    ['S', '随机播放'],
+    ['R', '循环模式'],
+    ['F', '收藏当前歌曲'],
+    ['L', '打开歌词空间'],
+    ['V', '打开可视化效果'],
+    ['/', '搜索'],
+    ['Esc', '关闭浮层 / 退出 3D 空间'],
   ]
   return (
-    <Card title="Keyboard Shortcuts">
+    <Card title="键盘快捷键">
       <div className="grid gap-1 sm:grid-cols-2">
         {rows.map(([k, v]) => (
           <div key={k} className="flex items-center justify-between rounded-xl px-2.5 py-2 hover:bg-white/4">
@@ -535,22 +546,22 @@ function AudioSection() {
   const s = useSettingsStore()
   const player = usePlayerStore()
   return (
-    <Card title="Audio" hint="The engine. Playback always has priority over everything drawn on screen.">
-      <Row label="Output volume" hint="The same level the dock controls">
-        <Slider label="Volume" value={s.settings.volume} min={0} max={1} step={0.01} onChange={(v) => player.setVolume(v)} format={(v) => `${Math.round(v * 100)}%`} />
+    <Card title="音频" hint="引擎。播放永远优先于屏幕上绘制的一切。">
+      <Row label="输出音量" hint="与底部控制条调节的是同一音量">
+        <Slider label="音量" value={s.settings.volume} min={0} max={1} step={0.01} onChange={(v) => player.setVolume(v)} format={(v) => `${Math.round(v * 100)}%`} />
       </Row>
-      <Row label="Mute">
-        <Toggle on={player.muted} onChange={() => player.toggleMute()} label="Muted" />
+      <Row label="静音">
+        <Toggle on={player.muted} onChange={() => player.toggleMute()} label="静音" />
       </Row>
-      <Row label="Crossfade" hint="How long one track takes to give way to the next">
-        <Slider label="Crossfade" value={s.settings.crossfade} min={0} max={6} step={0.5} onChange={(v) => s.setSetting('crossfade', v)} format={(v) => (v ? `${v.toFixed(1)}s` : 'Off')} />
+      <Row label="交叉淡入淡出" hint="一首曲目让位给下一首所需的时间">
+        <Slider label="Crossfade" value={s.settings.crossfade} min={0} max={6} step={0.5} onChange={(v) => s.setSetting('crossfade', v)} format={(v) => (v ? `${v.toFixed(1)}s` : '关闭')} />
       </Row>
-      <Row label="Smooth volume" hint="Ramp volume changes instead of jumping to them">
-        <Toggle on={s.settings.smoothVolume} onChange={(v) => s.setSetting('smoothVolume', v)} label="Smooth volume" />
+      <Row label="平滑音量" hint="音量变化时渐变,而不是直接跳变">
+        <Toggle on={s.settings.smoothVolume} onChange={(v) => s.setSetting('smoothVolume', v)} label="平滑音量" />
       </Row>
-      <Row label="Now playing" hint="Track, position and queue state are shared across every page">
+      <Row label="正在播放" hint="曲目、进度与队列状态在所有页面之间共享">
         <span className="text-[12.5px]" style={{ color: 'var(--c-ink-faint)' }}>
-          {player.songId ? 'Engine running' : 'Idle — nothing loaded'}
+          {player.songId ? '引擎运行中' : '空闲 · 未载入曲目'}
         </span>
       </Row>
     </Card>
@@ -582,9 +593,9 @@ function ImportExportSection() {
       a.download = `mh-music-library-${new Date().toISOString().slice(0, 10)}.json`
       a.click()
       URL.revokeObjectURL(url)
-      toast('success', 'Library exported as JSON.')
+      toast('success', '音乐库已导出为 JSON。')
     } catch {
-      toast('error', 'The export could not be written.')
+      toast('error', '导出写入失败。')
     } finally {
       setBusy(false)
     }
@@ -605,27 +616,27 @@ function ImportExportSection() {
     a.download = 'mh-music-favorites.m3u8'
     a.click()
     URL.revokeObjectURL(url)
-    toast('success', 'Favorites exported as M3U8.')
+    toast('success', '收藏已导出为 M3U8。')
   }
 
   return (
-    <Card title="Import / Export" hint="Move your library in and out without a server in the middle.">
-      <Row label="Import a playlist" hint="JSON · M3U · M3U8 · CSV, matched against your local files">
+    <Card title="导入 / 导出" hint="无需中间服务器,即可导入导出你的音乐库。">
+      <Row label="导入歌单" hint="JSON · M3U · M3U8 · CSV,与本地文件匹配">
         <button className="lg-btn px-4 py-2 text-[12.5px]" onClick={() => { navigate('import'); pushPath('/import') }}>
-          Open the importer
+          打开导入器
         </button>
       </Row>
-      <Row label="Export the library" hint="Albums, favorites, playlists and history as one JSON document">
+      <Row label="导出音乐库" hint="专辑、收藏、歌单与历史合并为一个 JSON 文件">
         <button className="lg-btn px-4 py-2 text-[12.5px]" onClick={() => void exportJson()} disabled={busy}>
-          {busy ? 'Writing…' : 'Export JSON'}
+          {busy ? '导出中…' : '导出 JSON'}
         </button>
       </Row>
-      <Row label="Export favorites" hint="A standard M3U8 that any player can read">
-        <button className="lg-btn px-4 py-2 text-[12.5px]" onClick={exportM3U}>Export M3U8</button>
+      <Row label="导出收藏" hint="标准的 M3U8,任何播放器都能读取">
+        <button className="lg-btn px-4 py-2 text-[12.5px]" onClick={exportM3U}>导出 M3U8</button>
       </Row>
-      <Row label="Add music" hint="Folders are read in the browser; nothing is uploaded">
+      <Row label="添加音乐" hint="文件夹在浏览器中读取,不会上传任何内容">
         <button className="lg-btn px-4 py-2 text-[12.5px]" onClick={() => { navigate('folders'); pushPath('/folders') }}>
-          Manage folders
+          管理文件夹
         </button>
       </Row>
     </Card>
@@ -635,16 +646,16 @@ function ImportExportSection() {
 /** Privacy — what is stored, where, and what never leaves the device. */
 function PrivacySection() {
   return (
-    <Card title="Privacy" hint="What MH Music keeps, and where it keeps it.">
+    <Card title="隐私" hint="MH Music 保存了什么,保存在哪里。">
       <div className="space-y-2.5 px-1 pb-2 text-[12.5px] leading-relaxed" style={{ color: 'var(--c-ink-dim)' }}>
-        <p><strong style={{ color: 'var(--c-ink)' }}>Audio never leaves your device.</strong> Folders are read with the File System Access API (or a file picker where that is unavailable), decoded locally, and played from a blob URL. There is no upload step anywhere in the app.</p>
+        <p><strong style={{ color: 'var(--c-ink)' }}>音频从不离开你的设备。</strong> 文件夹通过 File System Access API 读取(不支持时使用文件选择器),在本地解码,并从 blob URL 播放。整个应用没有任何上传步骤。</p>
         {REMOTE_AUTH ? (
-          <p><strong style={{ color: 'var(--c-ink)' }}>Your account lives on the server.</strong> Your display name, email, a scrypt password hash with a per-account salt (never the plain password), and a session token are stored on the accounts server, so one sign-in works from any browser. Your music files, library, favourites and playlists still stay in this browser only.</p>
+          <p><strong style={{ color: 'var(--c-ink)' }}>你的账户保存在服务器上。</strong> 昵称、邮箱、带独立盐值的 scrypt 密码哈希(绝不是明文密码)以及会话令牌都存在账户服务器上,所以登录一次即可在任何浏览器使用。而你的音乐文件、音乐库、收藏与歌单仍然只留在这个浏览器里。</p>
         ) : (
-          <p><strong style={{ color: 'var(--c-ink)' }}>Your account is local.</strong> Passwords are stored only as a PBKDF2-SHA256 hash with a per-account salt — never in plain text. The auth module is written against a small adapter interface so a real backend can replace it without touching the UI.</p>
+          <p><strong style={{ color: 'var(--c-ink)' }}>你的账户保存在本地。</strong> 密码只以 PBKDF2-SHA256 加独立盐值的哈希保存 —— 绝不保存明文。认证模块基于一层很小的适配器接口编写,因此真正的后端可以直接替换它,而不需要改动界面。</p>
         )}
-        <p><strong style={{ color: 'var(--c-ink)' }}>Every account is isolated.</strong> Library, favorites, playlists, history, settings, lyric and layout preferences are namespaced per user; signing in as someone else shows none of it.</p>
-        <p><strong style={{ color: 'var(--c-ink)' }}>Deleting is explicit.</strong> Removing a track takes it out of the library. Deleting the original file is always a separate, second confirmation.</p>
+        <p><strong style={{ color: 'var(--c-ink)' }}>每个账户彼此隔离。</strong> 音乐库、收藏、歌单、历史、设置、歌词与布局偏好都按用户分命名空间存放;换成别人登录,看不到其中任何内容。</p>
+        <p><strong style={{ color: 'var(--c-ink)' }}>删除是明确的操作。</strong> 移除曲目只是把它从音乐库中移出。删除原始文件始终是另一次独立的二次确认。</p>
       </div>
     </Card>
   )
@@ -670,7 +681,7 @@ function NeteaseSection() {
       if (!out) {
         set({ enabled: true })
         setPlaylists(await fetchPlaylists())
-        toast('success', 'Connected to NetEase Cloud Music.')
+        toast('success', '已连接网易云音乐。')
         return
       }
       setQr(out)
@@ -682,12 +693,12 @@ function NeteaseSection() {
             window.clearInterval(poll.current)
             setQr(null)
             set({ enabled: true })
-            toast('success', 'Connected to NetEase Cloud Music.')
+            toast('success', '已连接网易云音乐。')
             setPlaylists(await fetchPlaylists())
           } else if (st.code === 800) {
             window.clearInterval(poll.current)
             setQr(null)
-            toast('error', 'That code expired — try again.')
+            toast('error', '二维码已过期,请重试。')
           }
         } catch {
           window.clearInterval(poll.current)
@@ -696,8 +707,8 @@ function NeteaseSection() {
       }, 2000)
     } catch (e) {
       toast('error', e instanceof Error && e.message === 'unconfigured'
-        ? 'Add your backend address first.'
-        : 'The endpoint could not be reached.')
+        ? '请先填写后端地址。'
+        : '无法连接到该服务。')
     } finally {
       setBusy(false)
     }
@@ -708,80 +719,80 @@ function NeteaseSection() {
   const importOne = async (pl: NeteasePlaylist) => {
     try {
       const res = await importPlaylist(pl)
-      toast('success', `“${pl.name}” imported — ${res.matched} of ${res.matched + res.missing} tracks matched.`)
+      toast('success', `「${pl.name}」已导入 —— ${res.matched + res.missing} 首中匹配到 ${res.matched} 首。`)
     } catch {
-      toast('error', `“${pl.name}” could not be imported.`)
+      toast('error', `「${pl.name}」导入失败。`)
     }
   }
 
   return (
-    <Card title="NetEase Cloud Music" hint="Connect through your own backend — never with a key in the browser.">
-      <Row label="Integration track" hint="The platform's own docs list both: a browser SDK for the web track, and a REST track whose secrets stay on your server.">
+    <Card title="网易云音乐" hint="通过你自己的后端接入 —— 绝不在浏览器里放密钥。">
+      <Row label="接入方式" hint="官方文档提供了两种方式:面向网页的浏览器 SDK,以及密钥留在你自己服务器上的 REST 接口。">
         <Segmented<'none' | 'jssdk' | 'backend'>
-          ariaLabel="NetEase integration track"
+          ariaLabel="网易云接入方式"
           value={cfg.strategy}
           onChange={(v) => set({ strategy: v })}
           options={[
-            { value: 'none', label: 'Off' },
-            { value: 'jssdk', label: 'Web SDK' },
-            { value: 'backend', label: 'My server' },
+            { value: 'none', label: '关闭' },
+            { value: 'jssdk', label: '网页 SDK' },
+            { value: 'backend', label: '我的服务器' },
           ]}
         />
       </Row>
       {cfg.strategy === 'jssdk' && (
-        <Row label="SDK script URL" hint="The browser SDK from the open platform's 文档中心 (网页应用接入). It runs the sign-in on NetEase's domain.">
+        <Row label="SDK 脚本地址" hint="来自开放平台文档中心(网页应用接入)的浏览器 SDK,登录过程在网易云的域名下完成。">
           <input
             value={cfg.sdkUrl}
             onChange={(e) => set({ sdkUrl: e.target.value })}
             placeholder="https://…/netease-music-sdk.js"
             className="w-[300px] rounded-xl bg-white/5 px-3 py-2 text-[12.5px] outline-none placeholder:text-white/25"
-            aria-label="NetEase SDK script URL"
+            aria-label="网易云 SDK 脚本地址"
           />
         </Row>
       )}
-      <Row label="App ID" hint="The public identifier from the open-platform console. It is safe to keep here.">
+      <Row label="App ID" hint="开放平台控制台里的公开标识,放在这里没有风险。">
         <input
           value={cfg.appId}
           onChange={(e) => set({ appId: e.target.value })}
           placeholder="b3010d…"
           className="w-[300px] rounded-xl bg-white/5 px-3 py-2 text-[12.5px] outline-none placeholder:text-white/25"
-          aria-label="NetEase App ID"
+          aria-label="网易云 App ID"
         />
       </Row>
-      <Row label="Backend endpoint" hint="Your server, which holds the AppSecret and the private key and signs every call.">
+      <Row label="后端地址" hint="你自己的服务器,持有 AppSecret 与私钥,并为每次请求签名。">
         <input
           value={cfg.endpoint}
           onChange={(e) => set({ endpoint: e.target.value })}
           placeholder="https://your-server.example/music"
           className="w-[300px] rounded-xl bg-white/5 px-3 py-2 text-[12.5px] outline-none placeholder:text-white/25"
-          aria-label="NetEase backend endpoint"
+          aria-label="网易云后端地址"
         />
       </Row>
 
-      <Row label="Status">
+      <Row label="状态">
         <div className="flex items-center gap-2">
           <span className="mh-mono text-[11.5px]" style={{ color: 'var(--c-ink-faint)' }}>
-            {status() === 'unconfigured' ? 'No endpoint set'
-              : status() === 'offline' ? 'Configured, not signed in'
-                : status() === 'ready' ? 'Endpooint reachable, ready to scan'
-                  : 'Signed in'}
+            {status() === 'unconfigured' ? '未设置后端地址'
+              : status() === 'offline' ? '已配置,未登录'
+                : status() === 'ready' ? '后端可达,可以扫码'
+                  : '已登录'}
           </span>
           {getSession()
-            ? <button className="lg-btn px-3.5 py-1.5 text-[12px]" onClick={() => { signOut(); set({ enabled: false }); setPlaylists(null); toast('info', 'Signed out of NetEase.') }}>Sign out</button>
-            : <button className="lg-btn lg-btn-primary px-3.5 py-1.5 text-[12px]" disabled={busy || !isConfigured(cfg)} onClick={() => void connect()}>{busy ? 'Starting…' : 'Connect'}</button>}
+            ? <button className="lg-btn px-3.5 py-1.5 text-[12px]" onClick={() => { signOut(); set({ enabled: false }); setPlaylists(null); toast('info', '已退出网易云。') }}>退出登录</button>
+            : <button className="lg-btn lg-btn-primary px-3.5 py-1.5 text-[12px]" disabled={busy || !isConfigured(cfg)} onClick={() => void connect()}>{busy ? '启动中…' : '连接'}</button>}
         </div>
       </Row>
 
       {qr && (
-        <Row label="Scan to sign in" hint="Open NetEase Cloud Music on your phone and scan this code.">
-          <img src={qr.qrImage} alt="NetEase sign-in QR code" className="h-[132px] w-[132px] rounded-xl bg-white p-1.5" />
+        <Row label="扫码登录" hint="在手机上打开网易云音乐,扫描这个二维码。">
+          <img src={qr.qrImage} alt="网易云登录二维码" className="h-[132px] w-[132px] rounded-xl bg-white p-1.5" />
         </Row>
       )}
 
       {playlists && (
-        <Row label="My NetEase playlists" hint="Importing keeps names and artwork; tracks are matched against your own files.">
+        <Row label="我的网易云歌单" hint="导入会保留名称与封面;曲目会与你的本地文件匹配。">
           <div className="max-h-[220px] w-[420px] space-y-1 overflow-y-auto pr-1">
-            {playlists.length === 0 && <span className="text-[12.5px]" style={{ color: 'var(--c-ink-faint)' }}>No playlists on that account.</span>}
+            {playlists.length === 0 && <span className="text-[12.5px]" style={{ color: 'var(--c-ink-faint)' }}>该账户没有歌单。</span>}
             {playlists.map((p) => (
               <div key={p.id} className="flex items-center gap-2.5 rounded-xl p-2" style={{ background: 'rgba(255,255,255,0.04)' }}>
                 {p.coverUrl
@@ -789,9 +800,9 @@ function NeteaseSection() {
                   : <span className="grid h-9 w-9 place-items-center rounded-lg" style={{ background: 'var(--c-tint)' }}>{p.name.slice(0, 1)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[12.5px]">{p.name}</span>
-                  <span className="block text-[11px]" style={{ color: 'var(--c-ink-faint)' }}>{p.trackCount ?? '?'} tracks</span>
+                  <span className="block text-[11px]" style={{ color: 'var(--c-ink-faint)' }}>{p.trackCount ?? '?'} 首</span>
                 </span>
-                <button className="lg-btn px-3 py-1.5 text-[11.5px]" onClick={() => void importOne(p)}>Import</button>
+                <button className="lg-btn px-3 py-1.5 text-[11.5px]" onClick={() => void importOne(p)}>导入</button>
               </div>
             ))}
           </div>
@@ -799,11 +810,10 @@ function NeteaseSection() {
       )}
 
       <div className="px-1 pb-2 text-[11.5px] leading-relaxed" style={{ color: 'var(--c-ink-faint)' }}>
-        Why a backend: NetEase signs every request with an AppSecret and an RSA private key. Those
-        belong on a server — anything shipped in the browser bundle is public the moment the page
-        loads. MH Music therefore stores only the AppID and your endpoint, and never sees the keys.
-        Streaming NetEase audio additionally needs their licensed SDK and is out of scope here;
-        this imports the playlists themselves, which is what a browser can honestly do.
+        为什么需要后端:网易云的每个请求都要用 AppSecret 与 RSA 私钥签名,而这些只应该留在服务器上
+        —— 任何打包进浏览器的东西,在页面加载的那一刻就已经公开。所以 MH Music 只保存 AppID 与你的
+        后端地址,永远不会接触到密钥。另外,在线播放网易云的音频还需要他们授权的 SDK,不在本项目
+        范围之内;这里导入的是歌单本身,这是浏览器能够如实做到的部分。
       </div>
     </Card>
   )
@@ -813,18 +823,18 @@ function NeteaseSection() {
 function AboutSection() {
   const s = useSettingsStore()
   return (
-    <Card title="About MH Music" hint="Music Beyond Sound.">
+    <Card title="关于 MH Music" hint="Music Beyond Sound.">
       <div className="space-y-3 px-1 pb-2 text-[12.5px] leading-relaxed" style={{ color: 'var(--c-ink-dim)' }}>
         <p>
-          An immersive player built around a record: album-driven colour, a real 3D turntable for the
-          opening, a visualiser that answers the track, and liquid glass for everything you touch.
+          一台围绕唱片构建的沉浸式播放器:由专辑驱动的配色、开场里真实的 3D 唱片机、
+          会回应曲目的可视化效果,以及触手可及的液态玻璃。
         </p>
         <div className="grid gap-1.5 sm:grid-cols-2">
           {[
-            ['Audio', 'Web Audio API · AnalyserNode'],
+            ['音频', 'Web Audio API · AnalyserNode'],
             ['3D', 'Three.js · WebGL · CSS 3D'],
-            ['Interface', 'React 18 · TypeScript · Framer Motion'],
-            ['Storage', 'IndexedDB · per-user namespaces'],
+            ['界面', 'React 18 · TypeScript · Framer Motion'],
+            ['存储', 'IndexedDB · 按用户隔离'],
           ].map(([k, v]) => (
             <div key={k} className="rounded-xl px-2.5 py-2" style={{ background: 'rgba(255,255,255,0.04)' }}>
               <div className="mh-overline" style={{ color: 'var(--c-ink-faint)' }}>{k}</div>
@@ -833,7 +843,7 @@ function AboutSection() {
           ))}
         </div>
         <p className="text-[11.5px]" style={{ color: 'var(--c-ink-faint)' }}>
-          Version 1.0 · theme {s.settings.theme} · {s.settings.visualizerMode} visualiser · {s.settings.visual.perf} performance
+          版本 1.0 · 主题 {THEME_LABELS[s.settings.theme]} · {VISUALIZER_MODE_LABELS.find((m) => m.id === s.settings.visualizerMode)?.label} 可视化 · {PERF_MODE_LABELS.find((p) => p.id === s.settings.visual.perf)?.label} 性能
         </p>
       </div>
     </Card>

@@ -12,7 +12,8 @@ const TAG = /\[(\d{1,2}):(\d{1,2})(?:[.:](\d{1,3}))?\]/g
 export function parseLrc(text: string): LyricLine[] {
   if (!text) return []
   const out: LyricLine[] = []
-  for (const raw of text.split(/\r?\n/)) {
+  // a lone CR ends a line too: `\r?\n` would treat a CR-only file as one line
+  for (const raw of text.split(/\r\n|\r|\n/)) {
     TAG.lastIndex = 0
     let m: RegExpExecArray | null
     const times: number[] = []
@@ -83,7 +84,11 @@ const hasTimestamps = (text: string) => { TAG.lastIndex = 0; return TAG.test(tex
  * tells the player not to pretend it has timings.
  */
 export function lyricsToLines(text: string | undefined): LyricLine[] | undefined {
-  const t = (text ?? '').replace(/\r/g, '').trim()
+  // CR and CRLF both end a line. Deleting carriage returns instead of treating
+  // them as breaks collapsed a CR-only .lrc — still common in lyrics files
+  // downloaded in the wild — into one enormous line: the words overflowed the
+  // frame, there was no line left to advance, and the view sat mid-file.
+  const t = (text ?? '').replace(/\r\n?/g, '\n').trim()
   if (!t) return undefined
   if (hasTimestamps(t)) {
     const lines = parseLrc(t)

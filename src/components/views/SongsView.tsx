@@ -29,14 +29,14 @@ export function SongsView() {
   const allIds = filtered.map((s) => s.id)
 
   if (!songs.length) {
-    return <EmptyState icon={<IconNote size={30} />} title="No songs yet." hint="Add a music folder and your tracks will gather here." />
+    return <EmptyState icon={<IconNote size={30} />} title="还没有歌曲。" hint="添加音乐文件夹后,曲目会汇集到这里。" />
   }
 
   return (
     <div className={cn(mode === 'stage' ? 'w-full' : 'mx-auto max-w-[980px]')}>
       <SectionTitle
-        title="Songs"
-        hint={`${filtered.length} tracks`}
+        title="歌曲"
+        hint={`${filtered.length} 首`}
         action={
           <div className="flex items-center gap-2">
             <label className="glass-soft flex items-center gap-2 rounded-full px-3.5 py-2">
@@ -44,9 +44,9 @@ export function SongsView() {
               <input
                 value={query}
                 onChange={(e) => { setQuery(e.target.value); setLimit(PAGE) }}
-                placeholder="Filter…"
+                placeholder="筛选…"
                 className="w-[110px] bg-transparent text-[12.5px] outline-none placeholder:text-white/25"
-                aria-label="Filter songs"
+                aria-label="筛选歌曲"
               />
             </label>
             <ViewModeToggle page="songs" />
