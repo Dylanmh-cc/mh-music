@@ -17,22 +17,34 @@ export function ContextMenu() {
       close()
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
-    const onScroll = () => close()
+    const onViewportChange = () => close()
+    // A long list (the song menu has fourteen rows) scrolls *inside* the menu,
+    // and the "添加到歌单" flyout has its own scrollbar — that wheel is the user
+    // reading the menu, not dismissing it.
+    const onWheel = (e: WheelEvent) => {
+      if (ref.current && e.target instanceof Node && ref.current.contains(e.target)) return
+      close()
+    }
     window.addEventListener('pointerdown', onDown, true)
     window.addEventListener('keydown', onKey)
-    window.addEventListener('resize', onScroll)
-    window.addEventListener('wheel', onScroll, { passive: true })
+    window.addEventListener('resize', onViewportChange)
+    window.addEventListener('wheel', onWheel, { passive: true })
     return () => {
       window.removeEventListener('pointerdown', onDown, true)
       window.removeEventListener('keydown', onKey)
-      window.removeEventListener('resize', onScroll)
-      window.removeEventListener('wheel', onScroll)
+      window.removeEventListener('resize', onViewportChange)
+      window.removeEventListener('wheel', onWheel)
     }
   }, [ctx, close])
 
   if (!ctx) return null
   const x = Math.min(ctx.x, window.innerWidth - 258)
-  const y = Math.min(ctx.y, window.innerHeight - Math.min(430, ctx.items.length * 40 + 24))
+  // the menu is capped to the viewport and scrolls, so the estimate only has to
+  // keep it on screen — the old flat guess of 430px put the last rows of a long
+  // menu below the fold with no way to reach them
+  const estimated = ctx.items.reduce((h, it) => h + (it.sep ? 17 : 41), 16)
+  const maxH = Math.max(180, window.innerHeight - 24)
+  const y = Math.max(12, Math.min(ctx.y, window.innerHeight - Math.min(estimated, maxH) - 12))
 
   return (
     <AnimatePresence>
@@ -42,7 +54,7 @@ export function ContextMenu() {
         // box, and clipping the container made every one of them invisible —
         // which is why they appeared not to open at all
         className="glass-strong fixed z-[260] min-w-[256px] rounded-2xl py-2"
-        style={{ left: x, top: y }}
+        style={{ left: x, top: y, maxHeight: maxH, overflowY: 'auto' }}
         initial={{ opacity: 0, scale: 0.92, y: -6 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95 }}

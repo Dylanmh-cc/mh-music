@@ -15,6 +15,9 @@ import { cn } from '../../lib/format'
 import type { BgMode, LyricsSettings, ParticleColor, ParticleDensity, ThemeMode, PerfMode } from '../../types/models'
 import { IconCheck } from '../icons'
 import { PlayModeButtons } from '../player/PlayModeButtons'
+import { clearLyricCache } from '../../lib/onlineLyrics'
+import { buildLyricBackup, readLyricBackup } from '../../lib/lyricBackup'
+import { lyricsToLines } from '../../lib/lrc'
 
 /** Theme ids, spelled the way the picker above spells them. */
 const THEME_LABELS: Record<ThemeMode, string> = {
@@ -36,6 +39,7 @@ export function SettingsView() {
       <AnimationSection />
       <AlbumSection />
       <LyricsSection />
+      <LyricSourceSection />
       <PlaybackSection />
       <AudioSection />
       <VisualsSection />
@@ -350,6 +354,141 @@ function LyricsSection() {
         >
           重置歌词设置
         </button>
+      </Row>
+    </Card>
+  )
+}
+
+/**
+ * Where lyric text comes from for tracks that ship without any.
+ *
+ * The lookup runs on the server, never in the page: the public lyric APIs answer
+ * without CORS headers, so the browser cannot read them. A proxy ships with the
+ * project (`netlify/functions/lyrics.mjs` on Netlify, `server/auth-server.mjs`
+ * when self-hosted) and both use the provider chain of the lyricFlow utility.
+ */
+function LyricSourceSection() {
+  const s = useSettingsStore()
+  const lib = useLibraryStore()
+  const src = s.settings.lyricSource
+  const [busy, setBusy] = useState(false)
+  const [progress, setProgress] = useState<{ done: number; total: number; found: number } | null>(null)
+  const lyricsInput = useRef<HTMLInputElement | null>(null)
+  const withLyrics = lib.songs.some((x) => x.lrc?.length)
+  const missing = lib.songs.filter((x) => !x.lrc?.length).length
+
+  const exportLyrics = () => {
+    const { blob, count } = buildLyricBackup(useLibraryStore.getState().songs)
+    if (!count) { toast('info', '还没有可导出的歌词。'); return }
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `mh-music-lyrics-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast('success', `已导出 ${count} 首曲目的歌词。`)
+  }
+
+  const fill = async () => {
+    setBusy(true)
+    setProgress({ done: 0, total: missing, found: 0 })
+    try {
+      const res = await lib.fetchMissingLyrics(setProgress)
+      if (!res.total) toast('info', '音乐库里所有曲目都已有歌词。')
+      else if (!res.found) toast('error', '没有找到歌词 —— 请确认部署里带有 /api/lyrics 代理(见 DEPLOY.md)。')
+      else toast('success', `已为 ${res.found} / ${res.total} 首曲目添加歌词。`)
+    } catch {
+      toast('error', '获取歌词时出错。')
+    } finally {
+      setBusy(false)
+      setProgress(null)
+    }
+  }
+
+  return (
+    <Card title="歌词来源" hint="为没有自带歌词的曲目在线查找歌词。查找通过服务端代理完成,浏览器无法直接访问这些接口。">
+      <Row label="自动获取" hint="导入曲目时在后台补齐缺失的歌词">
+        <Toggle on={src.autoFetch} onChange={(v) => { s.setSetting('lyricSource', { ...src, autoFetch: v }); clearLyricCache() }} label="自动获取歌词" />
+      </Row>
+      <Row label="歌词接口" hint="默认使用本站自带的 /api/lyrics;也可以填你自己服务器的完整地址">
+        <input
+          value={src.endpoint}
+          onChange={(e) => { s.setSetting('lyricSource', { ...src, endpoint: e.target.value.trim() }); clearLyricCache() }}
+          placeholder="/api/lyrics"
+          className="w-[300px] rounded-xl bg-white/5 px-3 py-2 text-[12.5px] outline-none placeholder:text-white/25"
+          aria-label="歌词接口地址"
+        />
+      </Row>
+      <Row label="优先数据源" hint="LrcApi 为默认;TuneHub 聚合网易云/Kuwo/QQ,可作补充">
+        <Segmented<'lrcapi' | 'tunehub'>
+          ariaLabel="歌词数据源"
+          value={src.provider}
+          onChange={(v) => { s.setSetting('lyricSource', { ...src, provider: v }); clearLyricCache() }}
+          options={[
+            { value: 'lrcapi', label: 'LrcApi' },
+            { value: 'tunehub', label: 'TuneHub' },
+          ]}
+        />
+      </Row>
+      <Row label="补齐整库歌词" hint={missing ? `还有 ${missing} 首曲目没有歌词` : '所有曲目都已有歌词'}>
+        <div className="flex items-center gap-3">
+          {progress && (
+            <span className="text-[12px] tabular-nums" style={{ color: 'var(--c-ink-dim)' }}>
+              {progress.done}/{progress.total} · 已找到 {progress.found}
+            </span>
+          )}
+          <button className="lg-btn px-4 py-2 text-[12.5px]" disabled={busy || !missing} onClick={() => void fill()}>
+            {busy ? '查找中…' : '开始补齐'}
+          </button>
+        </div>
+      </Row>
+      <Row label="本地音乐文件夹" hint="歌词也可以由 lyricFlow 这类工具写成本地 .lrc 文件,重新扫描文件夹即可读入(并会读取文件内嵌歌词)">
+        <button className="lg-btn px-4 py-2 text-[12.5px]" onClick={() => useUiStore.getState().navigate('folders')}>
+          打开文件夹
+        </button>
+      </Row>
+      <Row label="备份与恢复" hint="歌词保存在这个浏览器里;导出备份后,换设备或清了站点数据也能按 歌名+歌手 还原">
+        <div className="flex gap-2">
+          <button className="lg-btn px-4 py-2 text-[12.5px]" onClick={exportLyrics} disabled={!withLyrics}>
+            导出歌词
+          </button>
+          <button className="lg-btn px-4 py-2 text-[12.5px]" onClick={() => lyricsInput.current?.click()}>
+            恢复歌词
+          </button>
+        </div>
+        <input
+          ref={lyricsInput}
+          type="file"
+          accept=".json,application/json"
+          className="hidden"
+          onChange={async (e) => {
+            const file = e.target.files?.[0]
+            e.target.value = ''
+            if (!file) return
+            try {
+              const res = await readLyricBackup(file, useLibraryStore.getState().songs)
+              if (res.matched.size) {
+                useLibraryStore.setState((st) => ({
+                  songs: st.songs.map((x) => {
+                    const text = res.matched.get(x.id)
+                    if (!text) return x
+                    const lrc = lyricsToLines(text)
+                    return lrc?.length ? { ...x, lrc } : x
+                  }),
+                }))
+                // one write for the whole restore
+                useLibraryStore.getState().persistNow()
+              }
+              const parts = [`恢复 ${res.restored} 首`]
+              if (res.skipped) parts.push(`跳过 ${res.skipped} 首(已有歌词或内容为空)`)
+              if (res.unmatched.length) parts.push(`${res.unmatched.length} 首在库中找不到`)
+              toast(res.restored ? 'success' : 'info', `${parts.join(',')}。`)
+            } catch (err: any) {
+              toast('error', err?.message ?? '无法读取这个备份文件。')
+            }
+          }}
+          aria-hidden="true"
+        />
       </Row>
     </Card>
   )

@@ -2,6 +2,23 @@ import type { LyricLine } from '../types/models'
 
 const TAG = /\[(\d{1,2}):(\d{1,2})(?:[.:](\d{1,3}))?\]/g
 
+// Credits / liner notes that some lyric providers dump into the synced file —
+// they are not sung words, so they must never render as a lyric line. The
+// Chinese labels matter as much as the English ones: the providers used here
+// return 作词/作曲/编曲 as timed lines at the top of the file, always in the
+// "作词 : 某人" shape, so a colon is required. That keeps a real lyric that
+// happens to contain the word — "我为你作曲" — intact.
+const CREDIT_EN = /(produced by|producer|written by|lyrics by|music by|composed by|arranged by|mix(?:ed|ing)? by|master(?:ed)? by|engineered by|recorded by|vocals by|label\s*[:：]|℗|©|all rights reserved|copyright|executive producer)/i
+const CREDIT_ZH = /^\s*(作\s*词|作\s*曲|编\s*曲|詞\s*曲|词\s*曲|制\s*作\s*人|监\s*制|出\s*品|混\s*音|录\s*音|母\s*带|和\s*声|配\s*唱|吉\s*他|贝\s*斯|鼓\s*手|弦\s*乐|键\s*盘|发\s*行|录\s*音\s*室|o\.?p|s\.?p)\s*[:：]/i
+const CREDIT_LINE = { test: (s: string) => CREDIT_EN.test(s) || CREDIT_ZH.test(s) }
+// Bare section markers left behind by a timestamp tag, e.g. "[00:12.00][Verse]"
+const SECTION_LINE = /^(verse|chorus|intro|outro|bridge|break|hook|refrain|pre-?chorus|post-?chorus|interlude|solo|coda|tag|drop|build-?up)(\s*\d+)?\s*:?$/i
+
+/** Drop credits / section-marker lines from an already-parsed lyric list. */
+export function filterCreditLines(lines: LyricLine[]): LyricLine[] {
+  return lines.filter((l) => l.text.trim() && !CREDIT_LINE.test(l.text) && !SECTION_LINE.test(l.text.trim()))
+}
+
 /**
  * Parse LRC-format lyrics. Returns sorted, non-empty lines.
  *
@@ -27,6 +44,8 @@ export function parseLrc(text: string): LyricLine[] {
     if (!times.length) continue
     const body = raw.replace(TAG, '').trim()
     if (!body) continue
+    // drop production credits and bare section markers, never show them as lyrics
+    if (CREDIT_LINE.test(body) || SECTION_LINE.test(body)) continue
     for (const t of times) {
       // same stamp as the line we just placed → this is its translation
       const prev = out[out.length - 1]

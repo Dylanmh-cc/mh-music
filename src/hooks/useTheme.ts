@@ -26,9 +26,6 @@ export function useTheme(): void {
   const theme = useSettingsStore((s) => s.settings.theme)
   const animations = useSettingsStore((s) => s.settings.animations)
   const glassBlur = useSettingsStore((s) => s.settings.visual.glassBlur)
-  const glow = useSettingsStore((s) => s.settings.visual.glow)
-  const darkness = useSettingsStore((s) => s.settings.visual.darkness)
-  const depth = useSettingsStore((s) => s.settings.visual.depth)
   const perf = useSettingsStore((s) => s.settings.visual.perf)
   const density = useSettingsStore((s) => s.settings.visual.density)
   const sensitivity = useSettingsStore((s) => s.settings.visual.sensitivity)
@@ -44,14 +41,11 @@ export function useTheme(): void {
     const root = document.documentElement
     root.style.setProperty('--glass-blur', `${(6 + glassBlur * 26).toFixed(1)}px`)
     root.style.setProperty('--blur-app', `${(8 + glassBlur * 32).toFixed(1)}px`)
-    root.style.setProperty('--mh-glow', glow.toFixed(2))
-    root.style.setProperty('--mh-darkness', darkness.toFixed(2))
-    root.style.setProperty('--mh-depth', depth.toFixed(2))
     // performance mode is a single attribute: the stylesheet trims blur and
     // shadow from it, so the layout never changes between modes
     root.dataset.perf = perf
     root.dataset.density = density
-  }, [glassBlur, glow, darkness, depth, perf, density])
+  }, [glassBlur, perf, density])
 
   useEffect(() => {
     const root = document.documentElement

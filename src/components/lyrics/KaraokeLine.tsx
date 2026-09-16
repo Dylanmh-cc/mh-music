@@ -36,7 +36,14 @@ export function KaraokeLine({
   const fillRef = useRef<HTMLSpanElement | null>(null)
   const animate = useSettingsStore((s) => s.settings.lyrics.animate)
 
-  const parts = useMemo(() => text.split(/(\s+)/).filter((s) => s.length > 0), [text])
+  // Split into the atoms the fill reveals one at a time: a CJK glyph is its own
+  // atom (so a long Chinese line fills 字 by 字 *and* can break across two rows),
+  // while latin runs stay whole words — breaking "beautiful" mid-word to light it
+  // up would be worse than waiting for it.
+  const parts = useMemo(
+    () => text.match(/[\u2e80-\u9fff\uff00-\uffef]|[^\s\u2e80-\u9fff\uff00-\uffef]+|\s+/g)?.filter((s) => s.length > 0) ?? [],
+    [text],
+  )
   // the words, each with the moment it should start as a fraction of the line
   const words = useMemo(() => {
     const out: Array<{ text: string; at: number }> = []

@@ -26,9 +26,14 @@ export function loadUser<T>(key: string, fallback: T): T {
   } catch { return fallback }
 }
 
-export function saveUser(key: string, data: unknown): void {
-  if (!activeUid) return
-  try { ls().setItem(`${NS}:u:${activeUid}:${key}`, JSON.stringify(data)) } catch { /* quota */ }
+/**
+ * Write under the given account (default: the one signed in now). Persisting is
+ * debounced, so a write can outlive a sign-out; passing the uid it was scheduled
+ * for keeps it out of whoever signed in next.
+ */
+export function saveUser(key: string, data: unknown, uid: string | null = activeUid): void {
+  if (!uid) return
+  try { ls().setItem(`${NS}:u:${uid}:${key}`, JSON.stringify(data)) } catch { /* quota */ }
 }
 
 export function wipeUser(uid: string): void {

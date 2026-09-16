@@ -162,6 +162,19 @@ export interface NeteaseConfig {
   enabled: boolean
 }
 
+/** Where lyric text may be looked up for tracks that ship without any.
+ *  The lookup itself happens on the server (see netlify/functions/lyrics.mjs and
+ *  server/auth-server.mjs): the public lyric APIs answer without CORS headers,
+ *  so a browser cannot read them directly. */
+export interface LyricSourceConfig {
+  /** look lyrics up in the background when a track arrives without any */
+  autoFetch: boolean
+  /** the proxy the app calls; a same-origin path, or your own server */
+  endpoint: string
+  /** which provider the proxy should try first */
+  provider: 'lrcapi' | 'tunehub'
+}
+
 export interface Settings {
   theme: ThemeMode
   dynamicColors: boolean
@@ -173,6 +186,7 @@ export interface Settings {
   crossfade: number          // seconds; 0 = off
   smoothVolume: boolean
   lyrics: LyricsSettings
+  lyricSource: LyricSourceConfig
   particleColor: ParticleColor
   visualizerMode: VisualizerMode
   netease: NeteaseConfig

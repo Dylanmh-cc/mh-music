@@ -67,7 +67,9 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 async function hashPassword(password: string, saltHex: string): Promise<string> {
   const enc = new TextEncoder()
-  const salt = new Uint8Array(saltHex.match(/.{2}/g)!.map((b) => parseInt(b, 16)))
+  const pairs = saltHex.match(/.{2}/g) ?? []
+  if (!pairs.length) throw new Error('账户记录已损坏,请重新注册或重置密码。')
+  const salt = new Uint8Array(pairs.map((b) => parseInt(b, 16)))
   const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits'])
   const bits = await crypto.subtle.deriveBits(
     { name: 'PBKDF2', salt, iterations: ITERATIONS, hash: 'SHA-256' },
@@ -216,6 +218,8 @@ export async function changePassword(currentUid: string, currentPw: string, newP
   const users = readUsers()
   const user = users.find((u) => u.id === currentUid)
   if (!user) throw new Error('尚未登录。')
+  // the same floor the sign-up and reset paths enforce
+  if (newPw.length < 6) throw new Error('密码至少需要 6 位。')
   if ((await hashPassword(currentPw, user.salt)) !== user.hash) throw new Error('当前密码不正确。')
   user.salt = randomHex(16)
   user.hash = await hashPassword(newPw, user.salt)

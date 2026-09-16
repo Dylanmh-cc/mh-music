@@ -26,8 +26,9 @@ export function artistIdFor(name: string): string { return `ar_${hashStr(name.to
 
 /** Downscale a picture blob to a small persisted data URL (256px JPEG). */
 async function blobToDataUrl(blob: Blob): Promise<string> {
+  let url = ''
   try {
-    const url = URL.createObjectURL(blob)
+    url = URL.createObjectURL(blob)
     const img = await new Promise<HTMLImageElement>((res, rej) => {
       const i = new Image()
       i.onload = () => res(i)
@@ -40,10 +41,11 @@ async function blobToDataUrl(blob: Blob): Promise<string> {
     const ctx = cv.getContext('2d')!
     const side = Math.min(img.width, img.height)
     ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, s, s)
-    URL.revokeObjectURL(url)
     return cv.toDataURL('image/jpeg', 0.82)
   } catch {
     return ''
+  } finally {
+    if (url) URL.revokeObjectURL(url)
   }
 }
 
@@ -62,11 +64,16 @@ async function walkDirectory(
     if (entry.kind === 'directory') {
       await walkDirectory(entry, `${prefix}${entry.name}/`, out, lrcs, depth + 1)
     } else if (AUDIO_EXT.test(entry.name)) {
-      out.push({ file: entry as unknown as File, path: `${prefix}${entry.name}` })
+      // `dir.values()` yields handles, not Files: the audio has to be read out
+      // of the handle before tags, durations or object URLs can touch it
+      try {
+        const file = await (entry as FileSystemFileHandle).getFile()
+        out.push({ file, path: `${prefix}${entry.name}` })
+      } catch { /* file vanished or is unreadable */ }
     } else if (/\.lrc$/i.test(entry.name)) {
       try {
-        const f = entry as unknown as File
-        lrcs.set(`${prefix}${f.name.replace(/\.lrc$/i, '').toLowerCase()}`, decodeLyricBytes(await f.arrayBuffer()))
+        const f = await (entry as FileSystemFileHandle).getFile()
+        lrcs.set(`${prefix}${entry.name.replace(/\.lrc$/i, '').toLowerCase()}`, decodeLyricBytes(await f.arrayBuffer()))
       } catch { /* unreadable lrc */ }
     }
   }
@@ -168,6 +175,7 @@ async function finalizeScan(entries: Entry[], folder: MusicFolder, lrcs: Map<str
   songs.forEach((s, i) => { s.duration = durations[i] })
 
   // pass 3: album artwork
+  const byId = new Map(songs.map((s) => [s.id, s]))
   for (const album of albumMap.values()) {
     const first = pending.find((p) => p.song.albumId === album.id)
     let cover = ''
@@ -175,14 +183,15 @@ async function finalizeScan(entries: Entry[], folder: MusicFolder, lrcs: Map<str
     if (pic) cover = await blobToDataUrl(pic.blob)
     album.coverUrl = cover || generateCover(album.name, album.artist)
     album.songIds.sort((a, b) => {
-      const sa = songs.find((s) => s.id === a)!, sb = songs.find((s) => s.id === b)!
-      return (sa.track ?? 0) - (sb.track ?? 0)
+      const sa = byId.get(a), sb = byId.get(b)
+      return (sa?.disc ?? 0) - (sb?.disc ?? 0) || (sa?.track ?? 0) - (sb?.track ?? 0)
     })
   }
   for (const song of songs) song.coverUrl = albumMap.get(song.albumId)!.coverUrl
 
   for (const art of artistMap.values()) {
-    art.albumIds = [...new Set(songs.filter((s) => art.songIds.includes(s.id)).map((s) => s.albumId))]
+    const owned = new Set(art.songIds)
+    art.albumIds = [...new Set(songs.filter((s) => owned.has(s.id)).map((s) => s.albumId))]
   }
 
   hooks?.onProgress?.(total, total, '')
@@ -224,10 +233,12 @@ export async function scanFileList(files: File[], folderName: string, kind: 'fsa
     .map((f) => ({ file: f, path: ((f as any).webkitRelativePath as string | undefined) || f.name }))
   const lrcs = new Map<string, string>()
   for (const f of files) {
-    if (/\.lrc$/i.test(f.name)) {
-      const rel = ((f as any).webkitRelativePath as string | undefined) || f.name
+    if (!/\.lrc$/i.test(f.name)) continue
+    const rel = ((f as any).webkitRelativePath as string | undefined) || f.name
+    // one unreadable sidecar must never take the whole selection down with it
+    try {
       lrcs.set(rel.replace(/\.lrc$/i, '').toLowerCase(), decodeLyricBytes(await f.arrayBuffer()))
-    }
+    } catch { /* unreadable lrc */ }
   }
   return finalizeScan(entries, {
     id: folderId, name: folderName, kind, fileCount: entries.length, addedAt: Date.now(),

@@ -47,6 +47,7 @@ class AudioEngine {
   private bassEma = 0
   private lastBeatAt = 0
   private volRaf = 0
+  private volResolve: (() => void) | null = null
   private endedCb: (() => void) | null = null
   private errorCb: ((msg?: string) => void) | null = null
 
@@ -195,22 +196,38 @@ class AudioEngine {
   }
 
   async play(): Promise<void> {
-    try { await this.el.play() } catch (e) {
-      throw e
-    }
+    return this.el.play()
   }
   pause(): void { this.el.pause() }
-  seek(sec: number): void { this.el.currentTime = Math.max(0, Math.min(this.el.duration || 0, sec)) }
+
+  /** Clamp to the real duration — a stream with no duration never seeks to 0. */
+  seek(sec: number): void {
+    const d = this.el.duration
+    const max = isFinite(d) && d > 0 ? d : sec
+    this.el.currentTime = Math.max(0, Math.min(max, sec))
+  }
 
   get currentTime(): number { return this.el.currentTime }
   get duration(): number { return isFinite(this.el.duration) ? this.el.duration : 0 }
+
+  /**
+   * Stop any volume ramp in flight. A cancelled ramp is a *finished* ramp: the
+   * crossfade awaits `rampVolume`, so dropping the promise here would leave the
+   * track change waiting forever.
+   */
+  private cancelVolumeRamp(): void {
+    cancelAnimationFrame(this.volRaf)
+    const waiting = this.volResolve
+    this.volResolve = null
+    waiting?.()
+  }
 
   /**
    * Ramp the element volume over `seconds`. Used for crossfade and for the
    * smooth volume glide; cancels any volume ramp already in flight.
    */
   rampVolume(target: number, seconds: number): Promise<void> {
-    cancelAnimationFrame(this.volRaf)
+    this.cancelVolumeRamp()
     const to = Math.max(0, Math.min(1, target))
     const from = this.el.volume
     if (seconds <= 0 || Math.abs(from - to) < 0.002) {
@@ -224,15 +241,16 @@ class AudioEngine {
         const p = Math.min(1, (t - t0) / dur)
         this.el.volume = from + (to - from) * (p * (3 - 2 * p))
         if (p < 1) this.volRaf = requestAnimationFrame(step)
-        else resolve()
+        else { this.volResolve = null; resolve() }
       }
+      this.volResolve = resolve
       this.volRaf = requestAnimationFrame(step)
     })
   }
 
   /** Smoothly glide volume (Web Audio gain when available, element otherwise). */
   setVolume(target: number, smooth = true): void {
-    cancelAnimationFrame(this.volRaf)
+    this.cancelVolumeRamp()
     const from = this.el.volume
     const clamped = Math.max(0, Math.min(1, target))
     if (!smooth || Math.abs(from - clamped) < 0.005) {

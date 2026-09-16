@@ -25,26 +25,33 @@ export const SongRow = memo(function SongRow({
   onRemove?: () => void
   extraAction?: { label: string; action: () => void }
 }) {
-  const lib = useLibraryStore()
-  const player = usePlayerStore()
-  const ui = useUiStore()
-  const isCurrent = player.songId === song.id
-  const isPlaying = isCurrent && player.isPlaying
-  const fav = lib.favorites.songs.includes(song.id)
-  const album = lib.getAlbum(song.albumId)
+  // Narrow selectors on purpose: a whole-store subscription re-renders every
+  // row in the list on each position tick (four a second) and on every library
+  // edit, which defeats the `memo` above.
+  const songId = usePlayerStore((s) => s.songId)
+  const playing = usePlayerStore((s) => s.isPlaying)
+  const toggle = usePlayerStore((s) => s.toggle)
+  const playSong = usePlayerStore((s) => s.playSong)
+  const fav = useLibraryStore((s) => s.favorites.songs.includes(song.id))
+  const album = useLibraryStore((s) => s.albums.find((a) => a.id === song.albumId))
+  const openCtx = useUiStore((s) => s.openCtx)
+  const navigate = useUiStore((s) => s.navigate)
+  const toggleFavSong = useLibraryStore((s) => s.toggleFavSong)
+  const isCurrent = songId === song.id
+  const isPlaying = isCurrent && playing
 
   const items = songMenuItems(song)
   if (extraAction) items.splice(4, 0, { label: extraAction.label, action: extraAction.action })
   if (onRemove) items.push({ sep: true }, { label: '从歌单移除', danger: true, action: onRemove })
 
-  const activate = () => (isCurrent ? player.toggle() : player.playSong(song.id, contextIds, '歌曲'))
+  const activate = () => (isCurrent ? toggle() : playSong(song.id, contextIds, '歌曲'))
 
   return (
     <div
       className={cn('song-row group gap-1', isCurrent && 'playing', dimmed && 'dimmed')}
       onMouseEnter={() => onHover?.(song.id)}
       onMouseLeave={() => onHover?.(null)}
-      onContextMenu={(e) => { e.preventDefault(); ui.openCtx(e.clientX, e.clientY, items) }}
+      onContextMenu={(e) => { e.preventDefault(); openCtx(e.clientX, e.clientY, items) }}
     >
       {/* index / play state */}
       <button
@@ -86,7 +93,7 @@ export const SongRow = memo(function SongRow({
         <button
           className="hidden max-w-[190px] truncate text-[12.5px] hover:underline md:block"
           style={{ color: 'var(--c-ink-dim)' }}
-          onClick={() => song.albumId && ui.navigate('album', { albumId: song.albumId })}
+          onClick={() => song.albumId && navigate('album', { albumId: song.albumId })}
         >
           {album?.name}
         </button>
@@ -95,7 +102,7 @@ export const SongRow = memo(function SongRow({
         </span>
         <button
           className={cn('icon-btn h-9 w-9', fav && 'active')}
-          onClick={() => lib.toggleFavSong(song.id)}
+          onClick={() => toggleFavSong(song.id)}
           aria-label={fav ? `取消收藏 ${song.title}` : `收藏 ${song.title}`}
         >
           {fav ? <IconHeartFill size={16} /> : <IconHeart size={16} />}
@@ -104,7 +111,7 @@ export const SongRow = memo(function SongRow({
           className="icon-btn h-9 w-9"
           onClick={(e) => {
             const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
-            ui.openCtx(r.left - 210, r.bottom + 6, items)
+            openCtx(r.left - 210, r.bottom + 6, items)
           }}
           aria-label={`${song.title} 的更多选项`}
         >

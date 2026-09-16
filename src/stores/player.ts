@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { PlayMode, QueueItem, Song } from '../types/models'
+import type { PlayMode, QueueItem } from '../types/models'
 import { audio } from '../audio/engine'
 import { useLibraryStore } from './library'
 import { useSettingsStore } from './settings'
@@ -302,9 +302,3 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   setVinylOut: (albumId) => set({ vinylOutFor: albumId }),
   setPlaying: (v) => set({ isPlaying: v }),
 }))
-
-// Convenience typed hook for the currently playing song
-export function selectCurrentSong(): Song | undefined {
-  const id = usePlayerStore.getState().songId
-  return id ? useLibraryStore.getState().getSong(id) : undefined
-}

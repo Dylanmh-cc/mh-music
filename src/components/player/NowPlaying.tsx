@@ -13,13 +13,13 @@ import { rgba } from '../../lib/color'
 import { cn } from '../../lib/format'
 import { audio, type Levels } from '../../audio/engine'
 import type { Palette, BgMode } from '../../types/models'
-import { ProgressBar } from '../shell/ControlBar'
+import { ProgressBar } from './ProgressBar'
 import {
   IconClose, IconPlay, IconPause, IconNext, IconPrev, IconHeart, IconHeartFill,
   IconQueue, IconList, IconVolume, IconVolumeMute, IconDisc, IconSparkle,
   IconChevronDown, IconCheck,
 } from '../icons'
-import { useLyricHighlight } from '../panel/QueuePanel'
+import { useLyricHighlight } from '../../hooks/useLyricHighlight'
 import { VinylDisc } from '../album/VinylDisc'
 import { KaraokeLine } from '../lyrics/KaraokeLine'
 import { PlayModeButtons } from './PlayModeButtons'
@@ -44,11 +44,9 @@ export function NowPlaying() {
   const farX = useTransform(farPx, (v) => v * 15)
   const farY = useTransform(farPy, (v) => v * 11)
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && useUiStore.getState().nowPlayingOpen) toggleNowPlaying(false) }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [toggleNowPlaying])
+  // Escape is owned by useHotkeys, which also knows about the search box and
+  // the context menu. A second handler here used to close the whole player while
+  // the listener was typing in a field.
 
   return (
     <AnimatePresence>
@@ -99,7 +97,11 @@ export function NowPlaying() {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="mx-auto grid min-h-full w-full max-w-[1560px] place-items-center gap-10 px-8 py-14 md:grid-cols-[0.92fr_1.18fr] md:px-10"
+              className="mx-auto grid min-h-full w-full max-w-[1560px] place-items-center gap-10 px-8 py-14 md:grid-cols-[minmax(0,0.92fr)_minmax(0,1.18fr)] md:px-10"
+              // centred vertically, but stretched across its own column: a
+              // content-sized item would overflow the column and slide under the
+              // artwork, which is what made the type look like it had no frame
+              style={{ justifyItems: 'stretch' }}
             >
               <NpArtwork cover={album.coverUrl} name={album.name} palette={album.palette} anchorRef={artRef} />
               <NpInfo
@@ -410,8 +412,10 @@ function NpArtwork({ cover, name, palette, anchorRef }: {
   const out = !retracted
   const { x: pxc, y: pyc } = useSpaceParallax()
 
-  // sleeve and record scale together, so the pair always reads as one object
-  const sleeveSize = `calc(min(400px, 30vw) * ${vinylSize})`
+  // sleeve and record scale together, so the pair always reads as one object.
+  // Keep a floor so a narrower window never shrinks the cover down to a tiny
+  // card, and a ceiling that leaves the lyrics the larger half of the frame.
+  const sleeveSize = `clamp(280px, calc(27vw * ${vinylSize}), 400px)`
 
   // the sleeve sits nearest the viewer; the record is pushed back behind it
   const sceneX = useTransform(pxc, (v) => v * -30)
@@ -433,7 +437,7 @@ function NpArtwork({ cover, name, palette, anchorRef }: {
   return (
     <div
       ref={anchorRef as React.RefObject<HTMLDivElement>}
-      className="relative mx-auto w-full"
+      className="relative mx-auto w-full min-w-0"
       style={{
         ['--sleeve' as any]: sleeveSize,
         maxWidth: 'var(--sleeve)',
@@ -632,6 +636,72 @@ function NpInfo({ songTitle, artist, albumName, albumId, lyricRef, onOpenQueue }
   // one line's worth of vertical space, so the window shows exactly `lines`
   const lineHeight = Math.round(L.size * 2.3) * 1.34 + L.gap
 
+  /**
+   * A sentence that does not fit wraps onto a *second* row — never a third, and
+   * never wider than the column, because the frame's width is fixed and the
+   * artwork beside it must not move. So the type is sized from the widest line
+   * of this song such that the line needs at most two rows, and every line of
+   * the song keeps that one size.
+   *
+   * The width it has to fit is the lyric column — 1.18/2.1 of the frame (max
+   * 1560px, less its padding and the column gap), or 76% of it when the column
+   * is pushed to one side — expressed in vw so it tracks the window instead of a
+   * hard-coded number. `widest` counts full-width CJK glyphs as 1em and
+   * latin/digits as ~0.56em; doubling the available width is what buys row two.
+   */
+  const lyricFit = useMemo(() => {
+    let widest = 1
+    for (const line of lyrics) {
+      let w = 0
+      for (const ch of line.text) w += /[\u2e80-\u9fff\uff00-\uffef\u3000-\u303f]/.test(ch) ? 1 : 0.56
+      if (w > widest) widest = w
+    }
+    const column = 'min(calc(56.2vw - 67px), 809px)'
+    const width = L.side === 'center' ? column : `calc(${column} * 0.76)`
+    return `min(${Math.round(L.size * 2.3)}px, 3.35vw, calc(${width} * 2 / ${widest.toFixed(2)}))`
+  }, [lyrics, L.size, L.side])
+
+  /**
+   * How long a line takes to give way to the next one follows the song, not a
+   * constant: the analyser's beat period is the music's own tempo (a 70 BPM
+   * ballad breathes, a 180 BPM track snaps), and when nothing is playing the
+   * fallback is this song's lyric cadence — the median gap between its lines.
+   */
+  const [tempoBpm, setTempoBpm] = useState(0)
+  const beatClock = useRef({ last: 0, gaps: [] as number[], bpm: 0 })
+  const onBeat = useMemo(() => (_el: HTMLElement, l: Levels) => {
+    const now = performance.now()
+    const c = beatClock.current
+    if (l.beat >= 0.55 && now - c.last > 240) {
+      if (c.last) {
+        const dt = now - c.last
+        if (dt > 240 && dt < 2200) {
+          c.gaps.push(dt)
+          if (c.gaps.length > 16) c.gaps.shift()
+          const sorted = [...c.gaps].sort((a, b) => a - b)
+          const bpm = Math.round(60000 / sorted[Math.floor(sorted.length / 2)])
+          // only re-render when the estimate really moved
+          if (Math.abs(bpm - c.bpm) >= 3) { c.bpm = bpm; setTempoBpm(bpm) }
+        }
+      }
+      c.last = now
+    }
+  }, [])
+  const beatRef = useAudioReactive(onBeat)
+
+  const transitionMs = useMemo(() => {
+    if (tempoBpm) return Math.round(Math.max(320, Math.min(1600, 90000 / tempoBpm)))
+    const gaps: number[] = []
+    for (let i = 1; i < lyrics.length; i++) {
+      const dt = lyrics[i].time - lyrics[i - 1].time
+      if (dt > 0.35 && dt < 20) gaps.push(dt)
+    }
+    if (!gaps.length) return 820
+    gaps.sort((a, b) => a - b)
+    // slower, more leisurely cross-fade between lines
+    return Math.round(Math.max(340, Math.min(1500, gaps[Math.floor(gaps.length / 2)] * 260)))
+  }, [tempoBpm, lyrics])
+
   // Auto-translate non-Chinese lyrics (en/ko/ja → zh) under the original.
   // Chinese lyrics are skipped; results live in a module cache so they only
   // translate once per session.
@@ -654,7 +724,8 @@ function NpInfo({ songTitle, artist, albumName, albumId, lyricRef, onOpenQueue }
 
   return (
     <motion.div
-      className="np-layer relative flex min-h-[60vh] flex-col"
+      ref={beatRef as React.RefObject<HTMLDivElement>}
+      className="np-layer relative flex min-h-[60vh] min-w-0 flex-col"
       style={{
         x: layerX,
         y: layerY,
@@ -699,7 +770,10 @@ function NpInfo({ songTitle, artist, albumName, albumId, lyricRef, onOpenQueue }
           className="scroll-silk flex flex-col"
           style={{
             justifyContent: L.mode === 'centered' ? 'center' : L.mode === 'bottom' ? 'flex-end' : 'flex-start',
+            // fixed, not merely capped: the same window height for every song
+            // means the artwork beside it never shifts between tracks
             maxHeight: Math.round(lineHeight * L.lines),
+            minHeight: Math.round(lineHeight * L.lines),
             gap: L.gap,
             paddingTop: Math.round(lineHeight * 0.6),
             paddingBottom: Math.round(lineHeight * 0.6),
@@ -741,11 +815,17 @@ function NpInfo({ songTitle, artist, albumName, albumId, lyricRef, onOpenQueue }
                 className={cn('lyric-line shrink-0', !synced ? 'unsynced' : isCurrent ? 'current' : i < active ? 'past' : 'near')}
                 style={{
                   // The setting is the ceiling, not a fixed size: a long line at
-                  // full size used to run wider than its column and slide under
-                  // the artwork, so the type now also tracks the viewport width.
-                  fontSize: `min(${Math.round(L.size * 2.3)}px, 3.35vw)`,
+                  // full size used to run wider than its column, which widened
+                  // the lyric track and shrank the cover beside it — so the type
+                  // is bounded by the width of this song's longest line.
+                  fontSize: lyricFit,
                   lineHeight: 1.34,
-                  transitionDuration: `${620 / L.speed}ms`,
+                  // a sentence that does not fit takes a second row, in order,
+                  // still filling character by character
+                  whiteSpace: 'normal',
+                  overflowWrap: 'anywhere',
+                  // one song's lines move at that song's pace
+                  transitionDuration: `${Math.round(transitionMs / L.speed)}ms`,
                   transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
                   transformOrigin: 'center center',
                   textAlign: 'inherit',

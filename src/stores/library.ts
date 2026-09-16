@@ -2,8 +2,8 @@ import { create } from 'zustand'
 import type { Album, Artist, HistoryEntry, LyricLine, MusicFolder, Playlist, ScanState, Song } from '../types/models'
 import { loadUser, saveUser } from '../services/storage'
 import { buildDemoLibrary, demoLyricsFor } from '../data/demo'
-import { lyricsToLines } from '../lib/lrc'
-import { fetchOnlineLyrics } from '../lib/onlineLyrics'
+import { lyricsToLines, filterCreditLines } from '../lib/lrc'
+import { fetchOnlineLyrics, lookupLyrics, fillMissingLyrics } from '../lib/onlineLyrics'
 import { useSettingsStore } from './settings'
 import {
   scanFSDirectory, rescanFSDirectory, scanFileList,
@@ -65,6 +65,16 @@ interface LibraryState {
   getLyrics: (song: Song) => LyricLine[]
   /** attach lyrics the user pasted or picked; pass nothing to clear them */
   setSongLyrics: (songId: string, text?: string) => void
+  /** write the library out right now instead of after the debounce */
+  persistNow: () => void
+  /** fetch the words of one track from the lyric proxy */
+  fetchLyricsFor: (songId: string) => Promise<'found' | 'missing' | 'unreachable'>
+  /**
+   * Fill in every track that has no lyrics yet. Returns how many were found;
+   * `onProgress` reports the sweep so the UI can show it. Existing lyrics are
+   * never overwritten, and the result is persisted once at the end.
+   */
+  fetchMissingLyrics: (onProgress?: (p: { done: number; total: number; found: number }) => void) => Promise<{ found: number; total: number }>
   __merge: (songs: Song[], albums: Album[], artists: Artist[], folder: MusicFolder) => void
 }
 
@@ -80,32 +90,73 @@ interface Serialized {
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined
-function persist(state: LibraryState) {
-  if (!state.userId) return
+let pendingSave: (() => void) | null = null
+
+/** Run a write that is still waiting out its debounce, right now. */
+function flushSave() {
+  if (!saveTimer) return
   clearTimeout(saveTimer)
-  saveTimer = setTimeout(() => {
-    // blob: URLs die on reload — urls for fs/upload songs are re-created on hydrate
-    const songs = state.songs.map((s) => (s.source === 'demo' ? s : { ...s, url: '' }))
+  saveTimer = undefined
+  const write = pendingSave
+  pendingSave = null
+  write?.()
+}
+
+function persist(state: LibraryState, immediate = false) {
+  const uid = state.userId
+  if (!uid) return
+  flushSave()
+  const write = () => {
+    // blob: URLs die on reload — urls for fs/upload songs are re-created on hydrate.
+    // Album covers are ~100 KB data URLs and every song used to carry its own
+    // copy: a few hundred tracks then exceeded the localStorage quota, and the
+    // library did not survive the reload. One copy per album is enough, so a
+    // song's cover is dropped here and put back from its album on hydrate.
+    const songs = state.songs.map((s) => ({
+      ...s,
+      url: s.source === 'demo' ? s.url : '',
+      coverUrl: '',
+    }))
     const data: Serialized = {
       songs, albums: state.albums, artists: state.artists,
       folders: state.folders, favorites: state.favorites,
       playlists: state.playlists, history: state.history.slice(-400), demoCleared: state.demoCleared,
     }
-    saveUser('library', data)
+    saveUser('library', data, uid)
+  }
+  if (immediate) { write(); return }
+  pendingSave = write
+  saveTimer = setTimeout(() => {
+    saveTimer = undefined
+    pendingSave = null
+    write()
   }, 500)
 }
 
 // Serialised background queue: look up words for a track that imported without
 // lyrics. Runs after the UI has already settled; never blocks import.
 let lyricQueue: Promise<void> = Promise.resolve()
+
+function lyricOptions() {
+  const src = useSettingsStore.getState().settings.lyricSource
+  return { endpoint: src.endpoint, provider: src.provider }
+}
+
 function queueLyricFetch(song: Song) {
   if (song.lrc?.length) return
+  if (!useSettingsStore.getState().settings.lyricSource.autoFetch) return
   lyricQueue = lyricQueue.then(async () => {
     if (useLibraryStore.getState().songs.find((s) => s.id === song.id)?.lrc?.length) return
-    const text = await fetchOnlineLyrics(song.artist, song.title, song.albumArtist)
+    const text = await fetchOnlineLyrics(song.artist, song.title, song.albumArtist, lyricOptions())
     if (!text) return
     const lrc = lyricsToLines(text)
     if (!lrc?.length) return
+    // Sanity check: a lyric whose timeline barely covers the track is almost
+    // certainly the wrong song (wrong track / a 30s preview). Drop it and let
+    // the user add a lyric manually instead of showing the wrong words.
+    const maxTime = Math.max(...lrc.map((l) => l.time))
+    const dur = song.duration || 0
+    if (dur > 30 && maxTime > 0 && maxTime < dur * 0.35) return
     useLibraryStore.setState((st) => ({
       songs: st.songs.map((x) => (x.id === song.id ? { ...x, lrc } : x)),
     }))
@@ -126,9 +177,9 @@ async function fileByPath(root: FileSystemDirectoryHandle, path: string): Promis
   } catch { return null }
 }
 
-function sortAlbumSongs(album: Album, songs: Song[]) {
+function sortAlbumSongs(album: Album, byId: Map<string, Song>) {
   album.songIds.sort((a, b) => {
-    const sa = songs.find((s) => s.id === a), sb = songs.find((s) => s.id === b)
+    const sa = byId.get(a), sb = byId.get(b)
     return (sa?.disc ?? 0) - (sb?.disc ?? 0) || (sa?.track ?? 0) - (sb?.track ?? 0)
   })
 }
@@ -192,10 +243,30 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   demoCleared: false,
 
   hydrate: async (uid) => {
-    const saved = loadUser<Serialized | null>('library', null)
-    if (saved && saved.songs?.length) {
+    // the previous account's last edit may still be inside the debounce window
+    flushSave()
+    const raw = loadUser<Serialized | null>('library', null)
+    // Anything stored is authoritative, including an *empty* library: re-seeding
+    // the preview because someone deleted every track would resurrect music they
+    // removed on purpose. A partial/older record is filled in, not discarded.
+    const saved = raw ? {
+      demoCleared: !!raw.demoCleared,
+      songs: raw.songs ?? [],
+      albums: raw.albums ?? [],
+      artists: raw.artists ?? [],
+      folders: raw.folders ?? [],
+      favorites: {
+        songs: raw.favorites?.songs ?? [],
+        albums: raw.favorites?.albums ?? [],
+        artists: raw.favorites?.artists ?? [],
+      },
+      playlists: raw.playlists ?? [],
+      history: raw.history ?? [],
+    } as Serialized : null
+    if (saved) {
       set({ ...saved, userId: uid, scan: null })
-      const songs = get().songs.map((s) => ({ ...s }))
+      const covers = new Map(get().albums.map((a) => [a.id, a.coverUrl]))
+      const songs = get().songs.map((s) => ({ ...s, coverUrl: s.coverUrl || covers.get(s.albumId) || '' }))
 
       // 1) uploaded tracks: restore playable URLs from persisted blobs
       for (const s of songs) {
@@ -223,15 +294,8 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
         } catch { /* ignore */ }
       }
       set({ songs })
-    } else if (saved?.demoCleared) {
-      // the user cleared the demo collection and has nothing of their own yet:
-      // start them on an empty library rather than re-seeding the preview
-      set({
-        userId: uid, songs: [], albums: [], artists: [], folders: [],
-        favorites: { songs: [], albums: [], artists: [] },
-        playlists: [], history: [], scan: null, demoCleared: true,
-      })
     } else {
+      // a fresh account starts on the demo preview
       const demo = buildDemoLibrary()
       set({
         userId: uid, songs: demo.songs, albums: demo.albums, artists: demo.artists,
@@ -242,11 +306,15 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     }
   },
 
-  clearInMemory: () => set({
-    userId: null, songs: [], albums: [], artists: [], folders: [],
-    favorites: { songs: [], albums: [], artists: [] }, playlists: [], history: [], scan: null,
-    demoCleared: false,
-  }),
+  clearInMemory: () => {
+    // never let a debounced write cross accounts
+    flushSave()
+    set({
+      userId: null, songs: [], albums: [], artists: [], folders: [],
+      favorites: { songs: [], albums: [], artists: [] }, playlists: [], history: [], scan: null,
+      demoCleared: false,
+    })
+  },
 
   addFolderFS: async () => {
     if (!supportsFS) {
@@ -305,8 +373,18 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
       const result = await rescanFSDirectory(handle, folder, {
         onProgress: (done, total, current) => set({ scan: { active: true, done, total, current, folderName: folder.name } }),
       })
+      // Anything the scan no longer finds was deleted or moved outside the app,
+      // so the rescan is the moment to drop it instead of keeping a dead URL.
+      const found = new Set(result.songs.map((s) => s.id))
+      const gone = new Set(get().songs.filter((s) => s.folderId === folderId && !found.has(s.id)).map((s) => s.id))
       get().__merge(result.songs, result.albums, result.artists, result.folder)
-      toast('success', `已重新扫描「${folder.name}」—— ${result.songs.length} 首曲目。`)
+      if (gone.size) {
+        set(purgeSongs(get(), gone))
+        afterPurge(gone)
+      }
+      toast('success', gone.size
+        ? `已重新扫描「${folder.name}」—— ${result.songs.length} 首曲目,移除 ${gone.size} 首已不在文件夹中的曲目。`
+        : `已重新扫描「${folder.name}」—— ${result.songs.length} 首曲目。`)
     } catch {
       toast('error', '无法读取该文件夹。')
     } finally {
@@ -383,7 +461,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   importPlaylistFile: async (file, name) => {
     const entries = await parsePlaylistFile(file)
     if (!entries.length) throw new Error('这个文件里没有找到曲目。')
-    const { matched, unmatched } = matchEntries(entries, get().songs)
+    const { matched, unmatched } = matchEntries(entries, get().songs, (id) => get().albums.find((a) => a.id === id)?.name)
     if (matched.length) get().createPlaylist(name, matched)
     else toast('info', '音乐库里没有匹配的歌曲。')
     return { matched: matched.length, unmatched }
@@ -517,10 +595,49 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     else if (!raw && text === undefined) toast('info', '歌词已清除。')
   },
   getLyrics: (song) => {
-    const base = song.lrc?.length ? song.lrc : (demoLyricsFor(song.url) ?? [])
+    const raw = song.lrc?.length ? song.lrc : (demoLyricsFor(song.url) ?? [])
+    const base = filterCreditLines(raw)
     const off = useSettingsStore.getState().settings.lyrics.offset || 0
     if (!off || !base.length) return base
     return base.map((l) => ({ ...l, time: Math.max(0, l.time - off) }))
+  },
+
+  persistNow: () => persist(get(), true),
+
+  fetchLyricsFor: async (songId) => {
+    const song = get().songs.find((s) => s.id === songId)
+    if (!song) return 'missing'
+    const hit = await lookupLyrics(song.artist, song.title, song.albumArtist, lyricOptions())
+    if (!hit) return 'missing'
+    const lrc = lyricsToLines(hit.text)
+    if (!lrc?.length) return 'missing'
+    set((s) => ({ songs: s.songs.map((x) => (x.id === songId ? { ...x, lrc } : x)) }))
+    persist(get())
+    return 'found'
+  },
+
+  fetchMissingLyrics: async (onProgress) => {
+    // every track that has no timeline yet, demo preview included
+    const targets = get().songs.filter((s) => !s.lrc?.length)
+    if (!targets.length) return { found: 0, total: 0 }
+    const found = await fillMissingLyrics(targets, {
+      ...lyricOptions(),
+      onProgress,
+      shouldStop: () => !get().songs.length,
+    })
+    if (found.size) {
+      set((s) => ({
+        songs: s.songs.map((x) => {
+          const text = found.get(x.id)
+          if (!text) return x
+          const lrc = lyricsToLines(text)
+          return lrc?.length ? { ...x, lrc } : x
+        }),
+      }))
+      // one write for the whole sweep instead of one per track
+      persist(get())
+    }
+    return { found: found.size, total: targets.length }
   },
 
   __merge: (newSongs, newAlbums, newArtists, folder) => {
@@ -540,7 +657,10 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
       } else albumMap.set(a.id, { ...a })
     }
     const albums = [...albumMap.values()]
-    for (const a of albums) if (a.source !== 'demo') sortAlbumSongs(a, songs)
+    // one index for the whole merge: sorting every album used to re-scan the
+    // song list from inside the comparator, which is quadratic on a big import
+    const byId = new Map(songs.map((x) => [x.id, x]))
+    for (const a of albums) if (a.source !== 'demo') sortAlbumSongs(a, byId)
     const liveAlbums = albums.filter((a) => a.songIds.length || a.source === 'demo')
 
     const artistMap = new Map(s.artists.map((x) => [x.id, { ...x }]))
@@ -549,10 +669,10 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
       if (existing) existing.songIds = [...new Set([...existing.songIds, ...ar.songIds])]
       else artistMap.set(ar.id, { ...ar })
     }
-    const artists = [...artistMap.values()].map((ar) => ({
-      ...ar,
-      albumIds: [...new Set(songs.filter((x) => ar.songIds.includes(x.id)).map((x) => x.albumId))],
-    })).filter((a) => a.songIds.length)
+    const artists = [...artistMap.values()].map((ar) => {
+      const owned = new Set(ar.songIds)
+      return { ...ar, albumIds: [...new Set(songs.filter((x) => owned.has(x.id)).map((x) => x.albumId))] }
+    }).filter((a) => a.songIds.length)
 
     const folders = [...s.folders.filter((f) => f.id !== folder.id), folder]
     set({ songs, albums: liveAlbums, artists, folders })

@@ -133,14 +133,14 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
 .glass-soft {
   background: rgba(255, 255, 255, 0.035);
   backdrop-filter: blur(var(--glass-blur, 18px)) saturate(1.4);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 18px)) saturate(1.4);
   border: 1px solid rgba(255, 255, 255, 0.07);
   box-shadow: 0 10px 34px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 .glass-strong {
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.045) 50%, rgba(255, 255, 255, 0.07));
   backdrop-filter: blur(calc(var(--glass-blur, 40px) * 1.8)) saturate(1.8) brightness(1.1);
-  -webkit-backdrop-filter: blur(40px) saturate(1.8) brightness(1.1);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur, 40px) * 1.8)) saturate(1.8) brightness(1.1);
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
@@ -149,8 +149,6 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
    this stylesheet is emitted after the utility layer — so without these the
    material would silently beat Tailwind's `absolute`/`fixed` and a popover
    would stay in flow, stretching whatever it is anchored to. */
-.glass.absolute, .glass-soft.absolute, .glass-strong.absolute, .glass-pill.absolute { position: absolute; }
-.glass.fixed, .glass-soft.fixed, .glass-strong.fixed, .glass-pill.fixed { position: fixed; }
 
 /* Liquid glass button — the tactile one, for primary transport */
 .lg-btn {
@@ -332,6 +330,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
   border-left: 1px dashed rgba(255, 255, 255, 0.14);
   border-right: 1px dashed rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   opacity: 0.55;
 }
 
@@ -498,25 +497,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
 :root[data-motion='off'] .float-idle { animation: none; }
 
 /* focus effect: hovering one album softens the rest of the wall */
-.album-wall:hover .album-card:not(:hover) .cover-3d {
-  filter: blur(4.5px) saturate(0.55) brightness(0.6);
-  opacity: 0.48;
-  transform: scale(0.955);
-}
-.album-wall:hover .album-card:not(:hover) .album-meta { opacity: 0.26; }
-.album-wall:hover .album-card:not(:hover) .float-idle { animation-play-state: paused; }
-.album-wall:hover .album-card:hover .cover-3d {
-  filter: saturate(1.1) brightness(1.06);
-  transform: scale(1.035);
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), 0 0 60px var(--c-glow);
-}
 .album-card { transition: opacity 520ms ease, filter 520ms ease, z-index 0s; }
-.album-card.is-dim .cover-3d { filter: blur(4.5px) saturate(0.55) brightness(0.6); opacity: 0.5; transform: scale(0.955); }
-.album-card.is-dim .album-meta { opacity: 0.28; }
 @media (prefers-reduced-motion: reduce) {
-  .album-wall:hover .album-card:not(:hover) .cover-3d { filter: brightness(0.7); }
 }
-:root[data-motion='off'] .album-wall:hover .album-card:not(:hover) .cover-3d { filter: brightness(0.7); }
 
 /* stencil track numerals for the wall */
 .track-stencil {
@@ -530,79 +513,12 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
    The whole interface (top bar, sidebar, content, right panel) lives inside
    a single translucent slab floating in the ambient space, per the MH Music
    reference layout. The transport pill overlaps its bottom edge. */
-.app-frame {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  background:
-    radial-gradient(130% 60% at 15% -4%, var(--c-tint), transparent 58%),
-    radial-gradient(120% 55% at 88% -6%, var(--c-tint-2), transparent 62%),
-    linear-gradient(168deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.016) 46%, rgba(255, 255, 255, 0.034));
-  box-shadow:
-    0 50px 140px rgba(0, 0, 0, 0.62),
-    0 18px 50px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 0 90px rgba(0, 0, 0, 0.28);
-}
 @media (min-width: 768px) {
-  .app-frame {
-    border-radius: 26px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.085);
-    backdrop-filter: blur(var(--glass-blur, 22px)) saturate(1.5);
-    -webkit-backdrop-filter: blur(22px) saturate(1.5);
-  }
 }
 /* specular seam along the frame's top edge */
-.app-frame::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent 6%, rgba(255, 255, 255, 0.26), transparent 94%);
-  pointer-events: none;
-  z-index: 5;
-}
 
 /* ═══ Frameless regions ═════════════════════════════════════════════════ */
-.glass-pill {
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.022) 55%, rgba(255, 255, 255, 0.05));
-  backdrop-filter: blur(calc(var(--glass-blur, 26px) * 1.2)) saturate(1.7) brightness(1.05);
-  -webkit-backdrop-filter: blur(26px) saturate(1.7) brightness(1.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow:
-    0 26px 70px rgba(0, 0, 0, 0.55),
-    0 6px 20px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
-}
-.nav-rail-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  width: 100%;
-  padding: 11px 13px;
-  border-radius: 15px;
-  color: var(--c-ink-dim);
-  transition: color 320ms ease, background 320ms ease, transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.nav-rail-btn:hover { color: var(--c-ink); background: rgba(255, 255, 255, 0.05); transform: translateX(3px); }
 /* collapsed rail centres the icon: the utility must beat the rule above */
-.nav-rail-btn.px-0 { padding-left: 0; padding-right: 0; }
-.nav-rail-btn.is-active { color: var(--c-ink); }
-.nav-rail-btn.is-active::before {
-  content: '';
-  position: absolute;
-  left: -10px;
-  top: 50%;
-  height: 18px;
-  width: 3px;
-  border-radius: 99px;
-  transform: translateY(-50%);
-  background: linear-gradient(var(--c-accent-2), var(--c-accent));
-  box-shadow: 0 0 14px var(--c-glow);
-}
 
 /* ═══ Film grain ═════════════════════════════════════════════════════════
    Static on purpose: an animated full-screen overlay blend re-composites the
@@ -617,7 +533,6 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
   opacity: 0.05;
   mix-blend-mode: overlay;
 }
-.grain-strong { opacity: 0.12; }
 
 /* ═══ Vinyl record ═══════════════════════════════════════════════════════ */
 .vinyl {
@@ -687,57 +602,18 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
    One responsive track system for every browse surface (albums, artists,
    playlists, songs, search). Cards never fall below 260px on desktop and
    never balloon past 360px — the reference layout's comfortable proportions. */
-.card-wall {
-  display: grid;
-  gap: 32px 22px;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
-  align-items: start;
-}
-.card-wall > * { max-width: 360px; }
 @media (min-width: 768px) {
-  .card-wall { gap: 36px 24px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 }
 /* songs/playlists read better a little denser than full album sleeves */
-.card-wall.is-compact { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
 @media (min-width: 768px) {
-  .card-wall.is-compact { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
 }
-.card-wall.is-compact > * { max-width: 300px; }
 
 /* ── 3D media card: shared by songs, artists and playlists ──────────────── */
-.media-card {
-  position: relative;
-  transform-style: preserve-3d;
-  transition: opacity 460ms ease, filter 460ms ease;
-}
-.media-card .media-3d {
-  transition: transform 460ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 460ms ease, filter 400ms ease;
-  transform-style: preserve-3d;
-}
 /* focus depth: the hovered card lifts, its neighbours recede */
-.media-wall:hover .media-card:not(:hover) .media-3d {
-  filter: blur(3.4px) saturate(0.6) brightness(0.62);
-  opacity: 0.5;
-}
-.media-wall:hover .media-card:not(:hover) .media-meta { opacity: 0.3; }
-.media-wall:hover .media-card:hover .media-3d {
-  box-shadow: 0 34px 78px rgba(0, 0, 0, 0.62), 0 0 70px var(--c-glow);
-}
-.media-meta { transition: opacity 400ms ease; }
 @media (prefers-reduced-motion: reduce) {
-  .media-wall:hover .media-card:not(:hover) .media-3d { filter: brightness(0.7); }
 }
-:root[data-motion='off'] .media-wall:hover .media-card:not(:hover) .media-3d { filter: brightness(0.7); }
 
 /* album artwork always fills its frame — no letterbox, no borders */
-.art-fill {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
 
 /* ═══ Now Playing 3D space ═══════════════════════════════════════════════ */
 .np-scene {
@@ -749,7 +625,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
 .np-glass-panel {
   background: linear-gradient(155deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.02) 52%, rgba(255, 255, 255, 0.05));
   backdrop-filter: blur(var(--glass-blur, 24px)) saturate(1.6);
-  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 24px)) saturate(1.6);
   border: 1px solid rgba(255, 255, 255, 0.09);
   box-shadow: 0 34px 90px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
@@ -781,6 +657,9 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible, input:focus-vis
 .eq-bars { display: inline-flex; gap: 2px; align-items: flex-end; height: 14px; }
 .eq-bars i {
   width: 3.5px;
+  /* the height comes from the animation, so a clamped animation (reduced motion
+     or the animations-off switch) would leave the bars at auto height — zero */
+  height: 30%;
   background: var(--c-accent-2);
   border-radius: 1px;
   animation: eq 0.9s ease-in-out infinite;
@@ -860,7 +739,6 @@ input[type='range']::-moz-range-thumb {
   display: block;
   color: var(--lyr-hl, #ffffff);
   clip-path: inset(0 100% 0 0);
-  will-change: clip-path;
   pointer-events: none;
   text-shadow: 0 0 18px var(--c-glow), 0 0 46px var(--c-glow-soft);
 }
@@ -882,8 +760,6 @@ input[type='range']::-moz-range-thumb {
 }
 .floaty { animation: floaty 7s ease-in-out infinite; }
 
-.text-glow { text-shadow: 0 0 30px var(--c-glow); }
-.accent-glow { box-shadow: 0 0 24px var(--c-glow-soft), 0 0 60px var(--c-glow-soft); }
 
 .divider { height: 1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent); }
 
@@ -901,16 +777,6 @@ input[type='range']::-moz-range-thumb {
   position: absolute;
   inset: 0;
   background: radial-gradient(75% 75% at 50% 42%, transparent 30%, rgba(0, 0, 0, 0.78) 100%);
-  pointer-events: none;
-}
-.intro-spot {
-  position: absolute;
-  left: 50%;
-  top: 40%;
-  width: 90vmin;
-  height: 90vmin;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(210, 225, 255, 0.14) 0%, rgba(160, 190, 255, 0.05) 38%, transparent 68%);
   pointer-events: none;
 }
 
@@ -1484,6 +1350,12 @@ input[type='range']::-moz-range-thumb {
   }
   .grain { animation: none; }
 }
-:root[data-motion='off'] .drift-a, :root[data-motion='off'] .drift-b, :root[data-motion='off'] .drift-c { animation: none; }
 :root[data-motion='off'] .grain { animation: none; }
+:root[data-motion='off'] .stage-aurora,
+:root[data-motion='off'] .street-spray,
+:root[data-motion='off'] .st-neon,
+:root[data-motion='off'] .skeleton,
+:root[data-motion='off'] .intro-platter-top,
+:root[data-motion='off'] .intro-vu.is-live,
+:root[data-motion='off'] .intro-mote { animation: none; }
 :root[data-motion='off'] .floaty { animation: none; }

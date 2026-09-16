@@ -77,20 +77,25 @@ function loadSdk(): Promise<NonNullable<Window['NetEaseCloudMusic']>> {
   if (window.NetEaseCloudMusic) return Promise.resolve(window.NetEaseCloudMusic)
   if (sdkPromise) return sdkPromise
   const url = getConfig().sdkUrl.trim()
-  sdkPromise = new Promise((resolve, reject) => {
-    if (!url) { reject(new Error('unconfigured')); return }
+  const attempt = new Promise<NonNullable<Window['NetEaseCloudMusic']>>((resolve, reject) => {
+    // A cached *rejected* promise would keep failing for the rest of the session,
+    // so a corrected SDK URL in Settings could never take effect.
+    const fail = (e: Error) => { sdkPromise = null; reject(e) }
+    if (!url) { fail(new Error('unconfigured')); return }
     const el = document.createElement('script')
     el.src = url
     el.async = true
     el.onload = () => {
       const sdk = window.NetEaseCloudMusic
-      if (!sdk) { reject(new Error('SDK 已加载但没有注册自身')); return }
+      if (!sdk) { fail(new Error('SDK 已加载但没有注册自身')); return }
       sdk.init?.({ appId: getConfig().appId })
       resolve(sdk)
     }
-    el.onerror = () => reject(new Error('SDK 脚本无法加载'))
+    el.onerror = () => fail(new Error('SDK 脚本无法加载'))
     document.head.appendChild(el)
   })
+  // Only cache a successful load; a failure clears itself so the next call retries.
+  sdkPromise = attempt.catch((e) => { sdkPromise = null; throw e })
   return sdkPromise
 }
 

@@ -48,10 +48,14 @@ function PlayerApp() {
   const skipIntro = useSettingsStore((s) => s.settings.skipIntro)
   const animations = useSettingsStore((s) => s.settings.animations)
   const reduced = useReducedMotion()
+  const nowPlayingOpen = useUiStore((s) => s.nowPlayingOpen)
   // the intro tells us when it starts fading, so the product can already be
   // there underneath: a cross-fade instead of a black gap between the two
   const [introLeaving, setIntroLeaving] = useState(false)
-  const showIntro = !introDone && !skipIntro && !(reduced || !animations)
+  // Decided once, from how the session started. Turning animations on later must
+  // not make a six-second opening appear over work already in progress.
+  const [introEligible] = useState(() => !skipIntro && !(reduced || !animations))
+  const showIntro = introEligible && !introDone
 
   // land on a real page: an empty address means home
   useEffect(() => {
@@ -60,7 +64,7 @@ function PlayerApp() {
 
   return (
     <>
-      <AmbientStage paused={showIntro && !introLeaving} />
+      <AmbientStage paused={showIntro && !introLeaving || nowPlayingOpen} />
       <AnimatePresence>
         {showIntro && (
           <IntroAnimation

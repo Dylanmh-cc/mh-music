@@ -23,6 +23,10 @@ export function useHotkeys(enabled: boolean): void {
         if (e.key === 'Escape') (e.target as HTMLElement).blur()
         return
       }
+      // Ctrl/Cmd/Alt chords belong to the browser (Ctrl+R reloads, Ctrl+F finds,
+      // Ctrl+S saves) and a held key repeats by design — neither should drive
+      // playback.
+      if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return
       switch (e.key) {
         case ' ':
           e.preventDefault()

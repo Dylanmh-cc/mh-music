@@ -77,7 +77,13 @@ export function ConfirmDialog() {
 
             {spec.extra && (
               <button
-                onClick={() => { spec.extra!.onSelect(); close() }}
+                onClick={() => {
+                  spec.extra!.onSelect()
+                  // The secondary choice can open a confirmation of its own —
+                  // deleting the real file asks a second time, on purpose. Only
+                  // dismiss this dialog when it did not replace itself.
+                  if (useUiStore.getState().confirm === spec) close()
+                }}
                 className="mt-4 flex w-full items-start gap-3 rounded-2xl px-4 py-3.5 text-left transition-colors duration-200 hover:bg-white/8"
                 style={{ border: '1px solid rgba(255,120,120,0.26)', background: 'rgba(255,96,96,0.07)' }}
               >

@@ -66,7 +66,6 @@ export function VoxelLandscape({ palette, className }: { palette: Palette; class
     const wob = new Float32Array(N)
     const inside = new Uint8Array(N)
     const rim = new Uint8Array(N)
-    const dist = new Float32Array(N)
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         const i = r * COLS + c
@@ -79,6 +78,8 @@ export function VoxelLandscape({ palette, className }: { palette: Palette; class
     const target = new Float32Array(N)
     const height = new Float32Array(N)
     let time = 0, lastBeatAt = 0, bassEnv = 0, beatPulse = 0
+  // the palette is parsed once per album, not once per frame
+  let paletteCache: { key: string; base: number[]; ringHue: number; ringSat: number } | null = null
 
     const off = audio.onFrame((l: Levels, dtRaw: number) => {
       const dt = Math.min(0.05, dtRaw)
@@ -122,7 +123,6 @@ export function VoxelLandscape({ palette, className }: { palette: Palette; class
         // tiny negative, and a negative base in Math.pow returns NaN, which
         // silently erases every polygon drawn from it
         const d = Math.max(0, Math.hypot((u[i] * cw) / RX, (v[i] * ch) / RY) + wob[i])
-        dist[i] = d
         inside[i] = d < 1 ? 1 : 0
         rim[i] = d >= 0.82 && d < 0.93 ? 1 : 0
         if (!inside[i]) { target[i] = 0; continue }
@@ -145,13 +145,19 @@ export function VoxelLandscape({ palette, className }: { palette: Palette; class
 
       g.clearRect(0, 0, w, h)
 
-      const base = hexToHsl(palette.primary)
-      const accent = hexToHsl(palette.accent)
       // One palette for the whole terrain: the rim is the same colour family as
       // the blocks it wraps, lifted in lightness so the ring reads without
-      // introducing a second hue. Nothing here is off-palette.
-      const ringHue = accent[0]
-      const ringSat = Math.min(96, accent[1] + 6)
+      // introducing a second hue. Nothing here is off-palette. Parsing the two
+      // hex values belongs outside the loop — it used to run 60 times a second.
+      if (!paletteCache || paletteCache.key !== palette.primary + palette.accent) {
+        paletteCache = {
+          key: palette.primary + palette.accent,
+          base: hexToHsl(palette.primary),
+          ringHue: hexToHsl(palette.accent)[0],
+          ringSat: Math.min(96, hexToHsl(palette.accent)[1] + 6),
+        }
+      }
+      const { base, ringHue, ringSat } = paletteCache
 
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {

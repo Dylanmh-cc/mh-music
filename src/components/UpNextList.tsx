@@ -41,7 +41,7 @@ export function UpNextList({ className }: { className?: string }) {
         if (!song) return null
         return (
           <Reorder.Item
-            key={item.songId + i}
+            key={item.songId}
             value={item}
             className="mh-glass-soft group flex cursor-grab items-center gap-2.5 rounded-xl p-2 active:cursor-grabbing"
             whileDrag={{ scale: 1.02, boxShadow: '0 16px 36px rgba(0,0,0,0.45)' }}
@@ -49,7 +49,10 @@ export function UpNextList({ className }: { className?: string }) {
             <span className="mh-mono w-5 shrink-0 text-center text-[11px]" style={{ color: 'var(--c-ink-faint)' }}>{i + 1}</span>
             <button
               className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
-              onClick={() => usePlayerStore.getState().loadAndPlay(song.id)}
+              // Playing from the queue consumes the entry: leaving it in place
+              // made the track come round again when it ended, because `next()`
+              // reads the head of the same queue.
+              onClick={() => { usePlayerStore.getState().removeQueueAt(i); void usePlayerStore.getState().loadAndPlay(song.id) }}
               aria-label={`播放 ${song.title}`}
             >
               <img src={song.coverUrl} alt="" loading="lazy" className="h-10 w-10 rounded-lg object-cover" />

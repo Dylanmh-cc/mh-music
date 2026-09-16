@@ -1,4 +1,4 @@
-import { useUiStore, toast } from '../stores/ui'
+import { useUiStore, toast, askConfirm } from '../stores/ui'
 import { useLibraryStore } from '../stores/library'
 import { usePlayerStore } from '../stores/player'
 import { confirmDeleteSong } from './confirmActions'
@@ -46,7 +46,8 @@ export function songMenuItems(song: Song): CtxItem[] {
     // one extra line and always respond.
     { label: '选择歌词文件…', action: () => pickLyricsFile(song) },
     { label: '从剪贴板粘贴歌词', action: () => void pasteLyrics(song) },
-    ...(song.lrc?.length ? [{ label: '清除歌词', danger: true, action: () => lib.setSongLyrics(song.id) }] : []),
+    { label: '从网络获取歌词', action: () => void fetchLyrics(song) },
+    ...(song.lrc?.length ? [{ label: '清除歌词', danger: true, action: () => confirmClearLyrics(song) }] : []),
     { sep: true },
     { label: '从音乐库移除', danger: true, action: () => confirmDeleteSong(song) },
   ]
@@ -105,4 +106,38 @@ async function pasteLyrics(song: Song) {
   } catch {
     toast('error', '无法读取剪贴板 —— 请允许剪贴板权限,或改为选择一个 .lrc 文件。')
   }
+}
+
+/** Clearing is destructive like every other delete, so it asks first. */
+function confirmClearLyrics(song: Song) {
+  askConfirm({
+    title: `清除「${song.title}」的歌词?`,
+    body: '这首曲目保存的歌词会被移除,曲目本身和其他信息不受影响。可以随时重新选择歌词文件或从剪贴板粘贴。',
+    confirmLabel: '清除歌词',
+    danger: true,
+    onConfirm: () => useLibraryStore.getState().setSongLyrics(song.id),
+  })
+}
+
+/**
+ * Ask the lyric proxy for this one track. An existing lyric is kept unless the
+ * user says otherwise — losing words they already had is worse than a stale one.
+ */
+async function fetchLyrics(song: Song) {
+  const run = async () => {
+    toast('info', `正在查找「${song.title}」的歌词…`)
+    const result = await useLibraryStore.getState().fetchLyricsFor(song.id)
+    if (result === 'found') toast('success', `已为「${song.title}」添加歌词。`)
+    else toast('error', '没有找到这首歌的歌词;可以手动选择 .lrc 文件或粘贴歌词。')
+  }
+  if (song.lrc?.length) {
+    askConfirm({
+      title: `「${song.title}」已经有歌词了`,
+      body: '重新获取会用网络上的版本替换当前歌词。想保留现在这份就取消。',
+      confirmLabel: '替换歌词',
+      onConfirm: () => void run(),
+    })
+    return
+  }
+  await run()
 }

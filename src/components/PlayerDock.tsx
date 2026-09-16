@@ -36,12 +36,16 @@ export function PlayerDock({
   const songId = usePlayerStore((s) => s.songId)
   const isPlaying = usePlayerStore((s) => s.isPlaying)
   const onHome = useUiStore((s) => s.view === 'home')
-  const player = usePlayerStore()
-  const lib = useLibraryStore()
-  const ui = useUiStore()
-  const song = songId ? lib.getSong(songId) : undefined
-  const album = song ? lib.getAlbum(song.albumId) : undefined
-  const fav = song ? lib.favorites.songs.includes(song.id) : false
+  // field selectors, not the whole stores: the dock is on screen for the whole
+  // session, so a whole-store subscription re-rendered it on every position
+  // tick (four a second) and on every unrelated library change
+  const prev = usePlayerStore((s) => s.prev)
+  const next = usePlayerStore((s) => s.next)
+  const song = useLibraryStore((s) => (songId ? s.songs.find((x) => x.id === songId) : undefined))
+  const album = useLibraryStore((s) => (song ? s.albums.find((a) => a.id === song.albumId) : undefined))
+  const fav = useLibraryStore((s) => (song ? s.favorites.songs.includes(song.id) : false))
+  const toggleFavSong = useLibraryStore((s) => s.toggleFavSong)
+  const openCtx = useUiStore((s) => s.openCtx)
 
   return (
     <div className="flex justify-center px-4 pb-4 pt-3">
@@ -80,9 +84,9 @@ export function PlayerDock({
           {/* transport */}
           <div className="flex items-center gap-1.5">
             <PlayModeButtons size={32} className="mr-1 hidden lg:flex" />
-            <IconButton label="上一首" className="h-10 w-10" onClick={() => player.prev()}><IconPrev size={19} /></IconButton>
+            <IconButton label="上一首" className="h-10 w-10" onClick={() => prev()}><IconPrev size={19} /></IconButton>
             <PlayButton />
-            <IconButton label="下一首" className="h-10 w-10" onClick={() => player.next()}><IconNext size={19} /></IconButton>
+            <IconButton label="下一首" className="h-10 w-10" onClick={() => next()}><IconNext size={19} /></IconButton>
           </div>
 
           <div className="hidden items-center gap-1 md:flex">
@@ -91,7 +95,7 @@ export function PlayerDock({
               className="h-10 w-10"
               active={fav}
               disabled={!song}
-              onClick={() => song && lib.toggleFavSong(song.id)}
+              onClick={() => song && toggleFavSong(song.id)}
             >
               {fav ? <IconHeartFill size={17} /> : <IconHeart size={17} />}
             </IconButton>
@@ -119,7 +123,7 @@ export function PlayerDock({
               onClick={(e) => {
                 if (!song) return
                 const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
-                ui.openCtx(r.left - 210, r.top - 8, songMenuItems(song))
+                openCtx(r.left - 210, r.top - 8, songMenuItems(song))
               }}
             >
               <IconMore size={17} />
@@ -231,6 +235,11 @@ function SeekBar() {
           setDragging(false)
           seek(p * duration)
         }}
+        // A drag can end without a pointerup — the pointer is cancelled by the
+        // OS, the window loses focus, or capture is stolen. Without this the bar
+        // stayed in "dragging" and stopped following the audio clock.
+        onPointerCancel={() => setDragging(false)}
+        onLostPointerCapture={() => setDragging(false)}
         onKeyDown={(e) => {
           if (e.key === 'ArrowRight') { e.stopPropagation(); seek(Math.min(duration, position + 5)) }
           if (e.key === 'ArrowLeft') { e.stopPropagation(); seek(Math.max(0, position - 5)) }

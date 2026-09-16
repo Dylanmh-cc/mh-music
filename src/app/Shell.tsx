@@ -6,10 +6,11 @@ import { useLibraryStore } from '../stores/library'
 import { useAuthStore } from '../stores/auth'
 import { useIsMobile } from '../hooks/useMedia'
 import { cn } from '../lib/format'
-import { isNowPlaying, pathToView, pushPath, readPath, useRoute, viewToPath, NOW_PLAYING_PATH, PROFILE_PATH } from './router'
+import { isNowPlaying, isStandalone, pathToView, pushPath, readPath, useRoute, viewToPath, NOW_PLAYING_PATH, PROFILE_PATH } from './router'
 import { GlassPanel } from '../components/glass/GlassPanel'
 import { PlayerDock } from '../components/PlayerDock'
 import { QueuePanel } from '../components/QueuePanel'
+import { ScanOverlay } from '../components/shell/ScanOverlay'
 import { HomePage } from '../pages/HomePage'
 import { ProfilePage } from '../pages/ProfilePage'
 import { MHLogo } from '../components/MHLogo'
@@ -75,23 +76,29 @@ export function Shell() {
   /* ── address ⇄ player navigation ──────────────────────────────────────── */
   // adopt the address we were opened with
   useEffect(() => {
-    if (isNowPlaying(readPath())) return
+    if (isStandalone(readPath())) return
     const next = pathToView(readPath())
     useUiStore.setState({ view: next.view, params: next.params })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // view changes write the address (replace: browsing is not a history entry)
+  // View changes write the address. This *pushes*, so opening an album from the
+  // grid leaves the grid on the history stack and Back returns to it; the
+  // standalone surfaces (/player, /profile, …) own their own address.
   useEffect(() => {
-    if (isNowPlaying(readPath())) return
-    pushPath(viewToPath(view, params), true)
+    if (isStandalone(readPath())) return
+    pushPath(viewToPath(view, params))
   }, [view, params])
 
   // back / forward reads it back
   useEffect(() => {
-    if (isNowPlaying(route)) return
+    if (isStandalone(route)) return
     const next = pathToView(route)
-    if (next.view !== useUiStore.getState().view) useUiStore.setState({ view: next.view, params: next.params })
+    const now = useUiStore.getState()
+    if (next.view !== now.view || next.params.albumId !== now.params.albumId
+      || next.params.artistId !== now.params.artistId || next.params.playlistId !== now.params.playlistId) {
+      useUiStore.setState({ view: next.view, params: next.params })
+    }
   }, [route])
 
   // /now-playing is a route, and the space is a full-screen page on it
@@ -163,6 +170,10 @@ export function Shell() {
         onCloseSpace={() => closeNowPlaying(false)}
       />
       {mobile && <MobileBar onSearch={() => setSearchOpen(true)} />}
+
+      {/* folder scans report their progress here — without it a big folder
+          looked like the app had frozen */}
+      <ScanOverlay />
 
       {/* the search overlay is shared with the old chrome; the trigger is new */}
       <SearchLauncher open={searchOpen} onClose={() => setSearchOpen(false)} />

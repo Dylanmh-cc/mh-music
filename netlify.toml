@@ -1,0 +1,29 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+# The lyrics proxy runs as a function. `/api/lyrics` is what the app calls (see
+# src/lib/onlineLyrics.ts), so the path is rewritten to the function instead of
+# 404-ing against the static bundle.
+[[redirects]]
+  from = "/api/lyrics"
+  to = "/.netlify/functions/lyrics"
+  status = 200
+
+# The whole app is a single page behind a hash router; anything else that is not
+# a real file falls back to index.html.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[functions]
+  node_bundler = "esbuild"
+
+[dev]
+  command = "npm run dev"
+  targetPort = 5180
+
+[build.environment]
+  NODE_VERSION = "20"

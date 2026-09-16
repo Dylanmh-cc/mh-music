@@ -13,7 +13,7 @@ export const DEFAULT_LYRICS: LyricsSettings = {
   size: 26, opacity: 0.95, lines: 4, align: 'center', mode: 'floating',
   side: 'center', motion: 'fade', translation: true, showNext: true, gap: 16, highlight: '#ffffff', speed: 1,
   animate: true,
-  offset: 1,
+  offset: 1.2,
 }
 
 export const DEFAULT_VISUALS: VisualSettings = {
@@ -41,6 +41,7 @@ export const DEFAULT_SETTINGS: Settings = {
   smoothVolume: true,
   netease: { appId: '', endpoint: '', sdkUrl: '', strategy: 'none', enabled: false },
   lyrics: { ...DEFAULT_LYRICS },
+  lyricSource: { autoFetch: true, endpoint: 'https://mh-music-production.up.railway.app/api/lyrics', provider: 'lrcapi' },
   particleColor: 'album',
   visualizerMode: 'terrain',
   // the reference room: dark, with the landscape providing the only light
@@ -138,6 +139,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         visual: { ...DEFAULT_VISUALS, ...((saved as any).visual ?? {}) },
         viewModes: { ...DEFAULT_SETTINGS.viewModes, ...((saved as any).viewModes ?? {}) },
         lyrics: { ...DEFAULT_LYRICS, ...(saved.lyrics ?? {}) },
+        lyricSource: { ...DEFAULT_SETTINGS.lyricSource, ...((saved as any).lyricSource ?? {}) },
         layouts: {
           global: { ...DEFAULT_LAYOUT, ...(saved.layouts?.global ?? {}) },
           perAlbum: saved.layouts?.perAlbum ?? {},

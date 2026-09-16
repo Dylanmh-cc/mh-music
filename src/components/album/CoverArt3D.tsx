@@ -28,11 +28,14 @@ export const CoverArt3D = memo(function CoverArt3D({ albumId, url, name, size = 
 
   const onFrame = useCallback((el: HTMLElement, l: Levels) => {
     el.style.setProperty('--breath', String(1 + l.bass * 0.022))
-    el.style.filter = `brightness(${1 + l.energy * 0.05})`
   }, [])
   const breath = useAudioReactive(onFrame)
 
-  const interactive = tilt && !document.documentElement.dataset?.motion
+  // `dataset.motion` is the string 'on' or 'off' — testing its truthiness turned
+  // the tilt off for everyone. A per-frame `filter` write on every sleeve was
+  // also the expensive half of the breathing effect, so only the cheap transform
+  // is driven from the audio frame.
+  const interactive = tilt && document.documentElement.dataset?.motion !== 'off'
   const perspective = size === 'space' ? 1200 : 900
 
   return (

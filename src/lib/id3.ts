@@ -382,10 +382,23 @@ export async function probeDuration(url: string): Promise<number> {
   return new Promise((resolve) => {
     const el = document.createElement('audio')
     el.preload = 'metadata'
-    const done = (d: number) => { el.src = ''; resolve(d) }
+    let settled = false
+    const done = (d: number) => {
+      if (settled) return
+      settled = true
+      clearTimeout(timer)
+      el.onloadedmetadata = null
+      el.onerror = null
+      // release the element's own buffer as well as the blob URL's reader
+      el.removeAttribute('src')
+      el.load()
+      resolve(d)
+    }
+    // a folder of hundreds of files probes four at a time: a timer left behind
+    // per file keeps a detached <audio> alive for the whole scan and beyond
+    const timer = setTimeout(() => done(isFinite(el.duration) ? el.duration : 0), 8000)
     el.onloadedmetadata = () => done(isFinite(el.duration) ? el.duration : 0)
     el.onerror = () => done(0)
-    setTimeout(() => done(isFinite(el.duration) ? el.duration : 0), 8000)
     el.src = url
   })
 }

@@ -21,12 +21,17 @@ function open(): Promise<IDBDatabase> {
 async function run<T>(store: StoreName, mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest): Promise<T> {
   const db = await open()
   return new Promise<T>((res, rej) => {
+    let settled = false
+    const finish = (fn2: () => void) => { if (!settled) { settled = true; fn2() } }
     const t = db.transaction(store, mode)
     const req = fn(t.objectStore(store))
-    req.onsuccess = () => res(req.result as T)
-    req.onerror = () => rej(req.error)
+    req.onsuccess = () => finish(() => res(req.result as T))
+    req.onerror = () => finish(() => rej(req.error))
+    // A transaction can abort without the request itself erroring (quota, or a
+    // store dropped mid-flight). Without this the promise never settles and the
+    // scan overlay that awaits it stays up forever.
+    t.onabort = () => { db.close(); finish(() => rej(t.error ?? new Error('transaction aborted'))) }
     t.oncomplete = () => db.close()
-    t.onabort = () => db.close()
   })
 }
 

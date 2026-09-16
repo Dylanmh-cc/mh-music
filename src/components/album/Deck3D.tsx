@@ -24,12 +24,13 @@ export function Deck3D({ cover, playing, accent, className }: {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const controllerRef = useRef<DeckStageController | null>(null)
   const [failed, setFailed] = useState(false)
-  // The deck is a WebGL scene, so it stops drawing the moment it is off-screen
-  // or behind the full-screen player: two live 3D contexts at once would take
-  // the frame budget away from the music.
+  // The deck is a WebGL scene, so it stops drawing the moment it is off-screen,
+  // behind the full-screen player, or still behind the opening animation: two
+  // live 3D contexts at once would take the frame budget away from the music.
   const [onScreen, setOnScreen] = useState(true)
   const spaceOpen = useUiStore((s) => s.nowPlayingOpen)
-  const paused = !onScreen || spaceOpen
+  const introDone = useUiStore((s) => s.introDone)
+  const paused = !onScreen || spaceOpen || !introDone
 
   useEffect(() => {
     const el = canvasRef.current?.parentElement

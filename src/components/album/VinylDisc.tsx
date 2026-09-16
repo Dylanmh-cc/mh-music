@@ -34,7 +34,9 @@ export const VinylDisc = memo(function VinylDisc({
     }
     let raf = 0
     let last = performance.now()
-    let angle = 0
+    // pick the angle up where the last run left it, so pausing and resuming does
+    // not snap the record back to zero
+    let angle = parseFloat(el.style.getPropertyValue('--vinyl-angle')) || 0
     let vel = 0
     const tick = (t: number) => {
       const dt = Math.min(0.05, (t - last) / 1000)
@@ -45,6 +47,10 @@ export const VinylDisc = memo(function VinylDisc({
       if (!spinning && vel < 0.6) vel = 0
       angle = (angle + vel * dt) % 360
       el.style.setProperty('--vinyl-angle', `${angle.toFixed(3)}deg`)
+      // A disc that has finished winding down must stop asking for frames: a
+      // grid renders one per album, so a hundred sleeves used to mean a hundred
+      // no-op callbacks every frame for the life of the page.
+      if (!spinning && vel === 0) return
       raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)

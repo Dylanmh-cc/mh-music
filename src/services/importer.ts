@@ -38,11 +38,14 @@ function parseM3U(text: string): ImportEntry[] {
   for (const line of lines) {
     if (line.startsWith('#EXTINF')) {
       const meta = line.slice(line.indexOf(':') + 1)
-      const title = meta.split(',')[1] ?? meta
-      const artistMatch = meta.match(/^(.*?)\s*[-–]\s*(.*)$/)
-      pending = artistMatch && artistMatch[1] && !/^\d+$/.test(artistMatch[1].trim())
+      // "215,Artist - Title": the comma splits the duration off, and only what
+      // follows it is the track. Matching the artist against the whole payload
+      // used to produce names like "215,Artist".
+      const title = (meta.split(',')[1] ?? meta).trim()
+      const artistMatch = title.match(/^(.*?)\s*[-–]\s*(.*)$/)
+      pending = artistMatch && artistMatch[1].trim() && !/^\d+$/.test(artistMatch[1].trim())
         ? { artist: artistMatch[1].trim(), title: artistMatch[2].trim() }
-        : { title: title.trim() }
+        : { title }
     } else if (line.startsWith('#')) {
       continue
     } else {
@@ -99,9 +102,15 @@ function parseCSV(text: string): ImportEntry[] {
 
 /**
  * Match imported entries against the local library.
- * Scoring: title similarity (weighted) + artist bonus.
+ * Scoring: title similarity (weighted) + artist bonus + a weaker album bonus.
+ * `albumName` resolves a song's album id to its title; without it the album
+ * term is simply skipped.
  */
-export function matchEntries(entries: ImportEntry[], songs: Song[]): ImportOutcome {
+export function matchEntries(
+  entries: ImportEntry[],
+  songs: Song[],
+  albumName?: (albumId: string) => string | undefined,
+): ImportOutcome {
   const matched: string[] = []
   const unmatched: ImportEntry[] = []
   const used = new Set<string>()
@@ -109,9 +118,12 @@ export function matchEntries(entries: ImportEntry[], songs: Song[]): ImportOutco
     let bestId = '', best = 0
     for (const s of songs) {
       if (used.has(s.id)) continue
-      const score = fuzzyScore(e.title, s.title) * 1.0 +
-        (e.artist ? fuzzyScore(e.artist, s.artist) * 0.7 : 0) +
-        (e.album && s.title ? fuzzyScore(e.album, s.albumId) * 0 : 0)
+      let score = fuzzyScore(e.title, s.title) +
+        (e.artist ? fuzzyScore(e.artist, s.artist) * 0.7 : 0)
+      if (e.album && albumName) {
+        const name = albumName(s.albumId)
+        if (name) score += fuzzyScore(e.album, name) * 0.35
+      }
       if (score > best) { best = score; bestId = s.id }
     }
     if (bestId && best >= 28) {
