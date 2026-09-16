@@ -13,6 +13,7 @@ export const DEFAULT_LYRICS: LyricsSettings = {
   size: 26, opacity: 0.95, lines: 4, align: 'center', mode: 'floating',
   side: 'center', motion: 'fade', translation: true, showNext: true, gap: 16, highlight: '#ffffff', speed: 1,
   animate: true,
+  offset: 1,
 }
 
 export const DEFAULT_VISUALS: VisualSettings = {

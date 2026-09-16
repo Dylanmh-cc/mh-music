@@ -90,6 +90,28 @@ createServer(async (req, res) => {
     }
   }
 
+  // Cheap translate proxy — used to render non-Chinese lyrics in Chinese.
+  // One short segment at a time; the caller batches/caches in the browser.
+  if (path === '/api/translate' && req.method === 'GET') {
+    const u = new URL(req.url, 'http://x')
+    const text = (u.searchParams.get('text') || '').slice(0, 4000)
+    if (!text.trim()) return json(res, 200, { translation: '' })
+    try {
+      const g = new URL('https://translate.googleapis.com/translate_a/single')
+      g.searchParams.set('client', 'gtx')
+      g.searchParams.set('sl', 'auto')
+      g.searchParams.set('tl', 'zh-CN')
+      g.searchParams.set('dt', 't')
+      g.searchParams.set('q', text)
+      const r = await fetch(g, { signal: AbortSignal.timeout(15000), headers: { 'User-Agent': 'Mozilla/5.0' } })
+      const data = await r.json()
+      const translated = (data[0] || []).map((seg) => seg && seg[0]).filter(Boolean).join('')
+      return json(res, 200, { translation: translated || '' })
+    } catch (e) {
+      return json(res, 200, { translation: '', error: String((e && e.message) || e) })
+    }
+  }
+
   const db = await read()
 
   if (path === '/register' && req.method === 'POST') {

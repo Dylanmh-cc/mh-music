@@ -8,6 +8,7 @@ import { useTilt } from '../../hooks/useTilt'
 import { useAudioReactive } from '../../hooks/useAudioReactive'
 import { useLyricFollow } from '../../hooks/useLyricFollow'
 import { isSynced } from '../../lib/lrc'
+import { translateLines, isMostlyChinese } from '../../lib/translate'
 import { rgba } from '../../lib/color'
 import { cn } from '../../lib/format'
 import { audio, type Levels } from '../../audio/engine'
@@ -631,6 +632,19 @@ function NpInfo({ songTitle, artist, albumName, albumId, lyricRef, onOpenQueue }
   // one line's worth of vertical space, so the window shows exactly `lines`
   const lineHeight = Math.round(L.size * 2.3) * 1.34 + L.gap
 
+  // Auto-translate non-Chinese lyrics (en/ko/ja → zh) under the original.
+  // Chinese lyrics are skipped; results live in a module cache so they only
+  // translate once per session.
+  const [trMap, setTrMap] = useState<Record<string, string>>({})
+  useEffect(() => {
+    if (!L.translation || !synced) return
+    const texts = lyrics.map((l) => l.text)
+    if (texts.every((t) => isMostlyChinese(t))) return
+    let alive = true
+    translateLines(texts).then((m) => { if (alive) setTrMap(m) })
+    return () => { alive = false }
+  }, [lyrics, L.translation, synced])
+
   const visible = useMemo(() => {
     if (active < 0) return lyrics.slice(0, L.lines)
     const half = Math.floor(L.lines / 2)
@@ -702,6 +716,24 @@ function NpInfo({ songTitle, artist, albumName, albumId, lyricRef, onOpenQueue }
             // simply reads as text at the same weight.
             const isCurrent = synced && i === active
             const nextLine = lyrics[i + 1]
+            // Apple-Music-style depth: the sung row is at full size & opacity;
+            // rows step back by distance — adjacent rows slightly smaller and
+            // dimmer, further rows fading toward the edge.
+            const dist = synced ? Math.abs(i - active) : 0
+            let lyricTransform: string | undefined
+            let lyricOpacity: number | undefined
+            if (!synced) {
+              lyricOpacity = !L.showNext && i > active + 1 ? 0 : undefined
+            } else if (isCurrent) {
+              lyricTransform = 'scale(1)'
+              lyricOpacity = 1
+            } else if (dist === 1) {
+              lyricTransform = L.motion === 'slide' ? 'translateY(6px) scale(0.97)' : 'scale(0.97)'
+              lyricOpacity = 0.62
+            } else {
+              lyricTransform = L.motion === 'slide' ? 'translateY(10px) scale(0.93)' : 'scale(0.93)'
+              lyricOpacity = 0.28
+            }
             return (
               <div
                 key={i}
@@ -714,14 +746,11 @@ function NpInfo({ songTitle, artist, albumName, albumId, lyricRef, onOpenQueue }
                   fontSize: `min(${Math.round(L.size * 2.3)}px, 3.35vw)`,
                   lineHeight: 1.34,
                   transitionDuration: `${620 / L.speed}ms`,
+                  transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                  transformOrigin: 'center center',
                   textAlign: 'inherit',
-                  // the motion setting only moves the lines that are not current
-                  transform: isCurrent ? undefined
-                    : L.motion === 'slide' ? 'translateY(8px)'
-                      : L.motion === 'scale' ? 'scale(0.94)'
-                        : undefined,
-                  // "show next line" off: everything past the one coming up fades out
-                  opacity: !L.showNext && i > active + 1 ? 0 : undefined,
+                  transform: lyricTransform,
+                  opacity: lyricOpacity,
                 }}
               >
                 {isCurrent && L.animate ? (
@@ -732,9 +761,10 @@ function NpInfo({ songTitle, artist, albumName, albumId, lyricRef, onOpenQueue }
                     active
                   />
                 ) : line.text}
-                {/* the translation rides under its own line */}
-                {L.translation && line.tr && (
-                  <span className="mt-1 block font-normal" style={{ fontSize: '0.6em', opacity: 0.62 }}>{line.tr}</span>
+                {/* the translation rides under its own line — sidecar LRC wins,
+                    otherwise the on-the-fly Chinese translation fills in */}
+                {(line.tr || trMap[line.text.trim()]) && (
+                  <span className="mt-1 block font-normal" style={{ fontSize: '0.6em', opacity: 0.62 }}>{line.tr || trMap[line.text.trim()]}</span>
                 )}
               </div>
             )

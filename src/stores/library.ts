@@ -4,6 +4,7 @@ import { loadUser, saveUser } from '../services/storage'
 import { buildDemoLibrary, demoLyricsFor } from '../data/demo'
 import { lyricsToLines } from '../lib/lrc'
 import { fetchOnlineLyrics } from '../lib/onlineLyrics'
+import { useSettingsStore } from './settings'
 import {
   scanFSDirectory, rescanFSDirectory, scanFileList,
   albumKey, albumIdFor, artistIdFor,
@@ -516,8 +517,10 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     else if (!raw && text === undefined) toast('info', '歌词已清除。')
   },
   getLyrics: (song) => {
-    if (song.lrc?.length) return song.lrc
-    return demoLyricsFor(song.url) ?? []
+    const base = song.lrc?.length ? song.lrc : (demoLyricsFor(song.url) ?? [])
+    const off = useSettingsStore.getState().settings.lyrics.offset || 0
+    if (!off || !base.length) return base
+    return base.map((l) => ({ ...l, time: Math.max(0, l.time - off) }))
   },
 
   __merge: (newSongs, newAlbums, newArtists, folder) => {

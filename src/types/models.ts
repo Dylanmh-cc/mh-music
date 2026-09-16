@@ -98,6 +98,7 @@ export interface LyricsSettings {
   highlight: string   // highlight color
   speed: number       // 0.5..2 animation speed multiplier
   animate: boolean    // karaoke word-by-word fill on the current line
+  offset: number      // seconds; positive shows lyrics that much earlier than the file's timestamps
 }
 
 export type ThemeMode = 'dynamic' | 'dark' | 'black' | 'midnight' | 'glass' | 'aurora' | 'sunset'
